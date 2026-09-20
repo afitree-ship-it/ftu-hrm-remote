@@ -210,6 +210,37 @@
         </div>
       </div>
 
+      <!-- Real-Time Screenshot Evidence Card -->
+      <div id="proof-container" class="glass-card rounded-3xl p-4 shadow-xl border border-slate-700/50 space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2.5">
+            <div class="w-8 h-8 rounded-xl bg-brand-500/20 text-brand-400 flex items-center justify-center text-sm border border-brand-500/30">
+              <i class="fa-solid fa-camera"></i>
+            </div>
+            <div>
+              <h2 class="text-xs font-bold text-white tracking-tight">ภาพถ่ายหลักฐานหน้าจอจริง (PC Proof)</h2>
+              <p id="proof-timestamp" class="text-[10px] text-slate-400">อัปเดตเมื่อ: รอภาพหลักฐาน...</p>
+            </div>
+          </div>
+          <button onclick="triggerCaptureProof()" id="btn-capture-proof" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-[11px] font-semibold text-slate-300 border border-slate-700/80 flex items-center gap-1.5 transition">
+            <i id="btn-capture-icon" class="fa-solid fa-camera-rotate text-xs"></i>
+            <span>ถ่ายภาพใหม่</span>
+          </button>
+        </div>
+
+        <!-- Image Container -->
+        <div class="relative rounded-2xl overflow-hidden border border-slate-800 bg-slate-950/90 aspect-video flex items-center justify-center group cursor-pointer" onclick="openProofZoom()">
+          <img id="proof-image" src="" alt="Proof Screenshot" class="w-full h-full object-cover object-top transition duration-300 group-hover:scale-105 hidden" onload="onProofLoaded()">
+          <div id="proof-placeholder" class="flex flex-col items-center justify-center p-6 text-center text-slate-500 space-y-2">
+            <i class="fa-solid fa-image text-3xl opacity-40"></i>
+            <span class="text-xs font-medium">กดปุ่มเข้างาน/ออกงานเพื่อดูภาพหลักฐานจริง</span>
+          </div>
+          <div id="proof-overlay" class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 text-white text-xs font-medium backdrop-blur-xs hidden">
+            <i class="fa-solid fa-magnifying-glass-plus"></i> แตะเพื่อดูรูปเต็มจอ
+          </div>
+        </div>
+      </div>
+
       <!-- Hero Action Buttons: Dual Punch In & Punch Out -->
       <div class="space-y-3">
         <!-- 1. Punch In Button -->
@@ -390,6 +421,15 @@
     </div>
   </div>
 
+  <!-- Image Lightbox Modal for Proof -->
+  <div id="modal-image-zoom" class="fixed inset-0 z-50 bg-black/95 backdrop-blur-md hidden flex-col items-center justify-center p-4 cursor-pointer" onclick="closeProofZoom()">
+    <button class="absolute top-5 right-5 w-11 h-11 rounded-full bg-slate-800/80 hover:bg-slate-700 text-white flex items-center justify-center text-lg transition">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    <img id="modal-zoom-img" src="" class="max-w-full max-h-[85vh] rounded-2xl shadow-2xl border border-slate-700 object-contain" onclick="event.stopPropagation()">
+    <p class="text-xs text-slate-400 mt-3 font-medium">แตะที่ว่างเพื่อปิดรูป</p>
+  </div>
+
   <!-- Floating Toast Notification -->
   <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 glass-panel px-4 py-3 rounded-2xl shadow-2xl border border-slate-700 text-xs font-medium text-white opacity-0 pointer-events-none transition-all duration-300 flex items-center gap-2.5 max-w-[90vw]">
     <div id="toast-icon-container" class="w-6 h-6 rounded-lg bg-brand-500/20 text-brand-400 flex items-center justify-center text-xs">
@@ -448,6 +488,43 @@
         showToast("ส่งคำสั่งไม่สำเร็จ ตรวจสอบอินเทอร์เน็ต", "error");
         return false;
       }
+    }
+
+    // Proof Screenshot UI helpers
+    function onProofLoaded() {
+      document.getElementById('proof-image').classList.remove('hidden');
+      document.getElementById('proof-placeholder').classList.add('hidden');
+      document.getElementById('proof-overlay').classList.remove('hidden');
+    }
+
+    function openProofZoom() {
+      const img = document.getElementById('proof-image');
+      if (!img.src || img.classList.contains('hidden')) return;
+      document.getElementById('modal-zoom-img').src = img.src;
+      const modal = document.getElementById('modal-image-zoom');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeProofZoom() {
+      const modal = document.getElementById('modal-image-zoom');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    async function triggerCaptureProof() {
+      const btn = document.getElementById('btn-capture-proof');
+      const icon = document.getElementById('btn-capture-icon');
+      btn.disabled = true;
+      btn.classList.add('opacity-75');
+      icon.className = "fa-solid fa-spinner fa-spin text-xs";
+      showToast("กำลังสั่งให้คอมพิวเตอร์ถ่ายภาพหน้าจอหลักฐาน...", "loading");
+      await sendCommand("CAPTURE_PROOF");
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.classList.remove('opacity-75');
+        icon.className = "fa-solid fa-camera-rotate text-xs";
+      }, 8000);
     }
 
     // 1. Manual Punch In
@@ -616,7 +693,18 @@
         }
       }
 
-      // 3. Schedule Window & Times
+      // 3. Proof Screenshot Evidence
+      if (data.screenshot_url) {
+        const proofImg = document.getElementById('proof-image');
+        if (proofImg.src !== data.screenshot_url) {
+          proofImg.src = data.screenshot_url;
+        }
+        if (data.screenshot_time) {
+          document.getElementById('proof-timestamp').innerText = `อัปเดตเมื่อ: ${data.screenshot_time}`;
+        }
+      }
+
+      // 4. Schedule Window & Times
       const timeStart = data.time_start || data.schedule_time || "07:00";
       const timeEnd = data.time_end || "08:30";
       
@@ -625,7 +713,7 @@
       document.getElementById('input-time-start').value = timeStart;
       document.getElementById('input-time-end').value = timeEnd;
 
-      // 4. Auto Switch & Task State
+      // 5. Auto Switch & Task State
       if (data.is_auto_enabled !== undefined) {
         document.getElementById('auto-toggle').checked = data.is_auto_enabled;
         const autoText = document.getElementById('card-auto-status');
@@ -637,7 +725,7 @@
         document.getElementById('card-task-state').innerText = data.task_state;
       }
 
-      // 5. Last Log
+      // 6. Last Log
       if (data.last_log) {
         document.getElementById('last-log-text').innerText = data.last_log;
       }
