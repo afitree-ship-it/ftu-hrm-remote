@@ -14,6 +14,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+  <script src="https://unpkg.com/mqtt@5.3.5/dist/mqtt.min.js"></script>
   
   <script>
     tailwind.config = {
@@ -387,7 +388,7 @@
             <label class="text-[11px] text-slate-400 font-medium flex items-center gap-1.5 mb-1">
               <i class="fa-solid fa-id-card text-[10px] text-blue-400"></i> รหัสพนักงาน (Username)
             </label>
-            <input type="text" id="input-hrm-username" value="71201752" placeholder="เช่น 71201752" class="w-full bg-transparent text-white font-mono font-bold text-base focus:outline-none placeholder-slate-600">
+            <input type="text" id="input-hrm-username" value="71201794" placeholder="เช่น 71201794" class="w-full bg-transparent text-white font-mono font-bold text-base focus:outline-none placeholder-slate-600">
           </div>
 
           <!-- Password Input -->
@@ -396,7 +397,7 @@
               <i class="fa-solid fa-key text-[10px] text-blue-400"></i> รหัสผ่าน HRM (Password)
             </label>
             <div class="flex items-center">
-              <input type="password" id="input-hrm-password" value="Afitree191..." placeholder="รหัสผ่าน HRM" class="w-full bg-transparent text-white font-mono font-bold text-base focus:outline-none placeholder-slate-600 pr-8">
+              <input type="password" id="input-hrm-password" value="Pw*71201794" placeholder="รหัสผ่าน HRM" class="w-full bg-transparent text-white font-mono font-bold text-base focus:outline-none placeholder-slate-600 pr-8">
               <button type="button" onclick="togglePasswordVisibility()" class="text-slate-400 hover:text-slate-200 p-1.5 text-sm" title="คลิกเพื่อเปิด/ปิดดูรหัสผ่าน">
                 <i id="eye-icon" class="fa-solid fa-eye"></i>
               </button>
@@ -518,20 +519,59 @@
       }, 4500);
     }
 
+    // Dual-Channel Real-Time Bridge: MQTT (Primary, 0ms, No Quotas) + ntfy.sh (Companion)
+    let mqttClient = null;
+
+    function initMQTT() {
+      try {
+        mqttClient = mqtt.connect('wss://broker.emqx.io:8084/mqtt', {
+          clientId: 'ftu_web_' + Math.random().toString(16).substring(2, 10),
+          clean: true,
+          reconnectPeriod: 3000,
+          connectTimeout: 6000
+        });
+        mqttClient.on('connect', () => {
+          console.log('Connected to MQTT WebSocket Relay (EMQX)!');
+          mqttClient.subscribe(STATUS_TOPIC);
+        });
+        mqttClient.on('message', (topic, payload) => {
+          try {
+            const data = JSON.parse(payload.toString());
+            updateUI(data);
+          } catch(e) {}
+        });
+      } catch(e) {
+        console.log('MQTT init note:', e);
+      }
+    }
+
     async function sendCommand(action, payload = {}) {
       const data = { action, ...payload, timestamp: Date.now() };
+      let delivered = false;
+
+      // 1. Send via MQTT WebSocket (instant, no rate limits)
+      if (mqttClient && mqttClient.connected) {
+        try {
+          mqttClient.publish(CMD_TOPIC, JSON.stringify(data), { qos: 1 });
+          delivered = true;
+        } catch(e) {}
+      }
+
+      // 2. Also send via ntfy.sh companion
       try {
         const resp = await fetch(`https://ntfy.sh/${CMD_TOPIC}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(data)
         });
-        if (!resp.ok) throw new Error("HTTP error " + resp.status);
-        return true;
-      } catch (e) {
+        if (resp.ok) delivered = true;
+      } catch (e) {}
+
+      if (!delivered && (!mqttClient || !mqttClient.connected)) {
         showToast("ส่งคำสั่งไม่สำเร็จ ตรวจสอบอินเทอร์เน็ต", "error");
         return false;
       }
+      return true;
     }
 
     // Proof Screenshot UI helpers
@@ -860,6 +900,7 @@
     }
 
     // Initialize
+    initMQTT();
     fetchStatus();
     initEventSource();
     setInterval(() => fetchStatus(false), 20000);
