@@ -223,9 +223,9 @@
               <p id="proof-timestamp" class="text-[10px] text-slate-400">อัปเดตเมื่อ: รอภาพหลักฐาน...</p>
             </div>
           </div>
-          <button onclick="triggerCaptureProof()" id="btn-capture-proof" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-[11px] font-semibold text-slate-300 border border-slate-700/80 flex items-center gap-1.5 transition">
+          <button onclick="triggerCaptureProof()" id="btn-capture-proof" title="ถ่ายภาพหน้าจอหลักฐานเท่านั้น (ไม่กดเข้างานและไม่กดออกงาน)" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-[11px] font-semibold text-slate-300 border border-slate-700/80 flex items-center gap-1.5 transition">
             <i id="btn-capture-icon" class="fa-solid fa-camera-rotate text-xs"></i>
-            <span>ถ่ายภาพใหม่</span>
+            <span>ถ่ายภาพหลักฐาน</span>
           </button>
         </div>
 
@@ -377,18 +377,32 @@
             </div>
             <div>
               <h2 class="text-sm font-bold text-white">บัญชีผู้ใช้ HRM (Username / Password)</h2>
-              <p class="text-[11px] text-slate-400">เปลี่ยนรหัสผ่านหรือสลับรหัสพนักงาน</p>
+              <p class="text-[11px] text-slate-400">กรอกรหัสพนักงาน/รหัสผ่านเพื่อลงเวลาได้ทันที</p>
             </div>
           </div>
+          <span class="text-[10px] px-2.5 py-0.5 rounded-full bg-blue-500/15 text-blue-400 border border-blue-500/30 font-semibold">
+            ใช้ได้ทันที
+          </span>
         </div>
 
         <div class="space-y-3">
+          <!-- Temporary Active Notification with 10s Countdown -->
+          <div id="credential-temp-badge" class="hidden p-3 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs flex items-center justify-between animate-pulse">
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-clock-rotate-left text-amber-400 text-sm"></i>
+              <span>กำลังใช้บัญชีอื่น (คืนค่าหลักใน <b id="reset-countdown-sec" class="font-mono text-white text-sm">10</b> วิ)</span>
+            </div>
+            <button onclick="resetToDefaultCredentials()" class="px-2.5 py-1 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-[10px] font-bold text-amber-200 border border-amber-500/40 active:scale-95 transition">
+              คืนค่าทันที
+            </button>
+          </div>
+
           <!-- Username Input -->
           <div class="bg-slate-900/90 rounded-2xl p-3 border border-slate-700/70 focus-within:border-blue-500 transition">
             <label class="text-[11px] text-slate-400 font-medium flex items-center gap-1.5 mb-1">
               <i class="fa-solid fa-id-card text-[10px] text-blue-400"></i> รหัสพนักงาน (Username)
             </label>
-            <input type="text" id="input-hrm-username" value="71201794" placeholder="เช่น 71201794" class="w-full bg-transparent text-white font-mono font-bold text-base focus:outline-none placeholder-slate-600">
+            <input type="text" id="input-hrm-username" value="71201752" oninput="onCredentialsChanged()" placeholder="เช่น 71201752" class="w-full bg-transparent text-white font-mono font-bold text-base focus:outline-none placeholder-slate-600">
           </div>
 
           <!-- Password Input -->
@@ -397,18 +411,18 @@
               <i class="fa-solid fa-key text-[10px] text-blue-400"></i> รหัสผ่าน HRM (Password)
             </label>
             <div class="flex items-center">
-              <input type="password" id="input-hrm-password" value="Pw*71201794" placeholder="รหัสผ่าน HRM" class="w-full bg-transparent text-white font-mono font-bold text-base focus:outline-none placeholder-slate-600 pr-8">
+              <input type="password" id="input-hrm-password" value="Afitree191..." oninput="onCredentialsChanged()" placeholder="รหัสผ่าน HRM" class="w-full bg-transparent text-white font-mono font-bold text-base focus:outline-none placeholder-slate-600 pr-8">
               <button type="button" onclick="togglePasswordVisibility()" class="text-slate-400 hover:text-slate-200 p-1.5 text-sm" title="คลิกเพื่อเปิด/ปิดดูรหัสผ่าน">
                 <i id="eye-icon" class="fa-solid fa-eye"></i>
               </button>
             </div>
           </div>
 
-          <!-- Save Credentials Button -->
-          <button id="btn-save-credentials" onclick="saveCredentials()" class="btn-glow w-full bg-slate-800 hover:bg-slate-700/90 border border-blue-500/40 text-blue-400 font-bold py-3 px-4 rounded-2xl text-sm flex items-center justify-center gap-2 transition active:scale-98 shadow-md">
-            <i class="fa-solid fa-floppy-disk"></i>
-            <span>บันทึกข้อมูลบัญชีใหม่</span>
-          </button>
+          <!-- Subtext explanation -->
+          <div class="flex items-start gap-2 pt-1 text-[11px] text-slate-400 leading-relaxed">
+            <i class="fa-solid fa-bolt text-brand-400 mt-0.5"></i>
+            <span>ไม่ต้องกดบันทึก: ปรับเปลี่ยนรหัสแล้วกดปุ่มเข้างาน/ออกงานได้ทันที ระบบจะใช้รหัสนี้ และ<b>คืนค่ากลับเป็นบัญชีหลัก (71201752) อัตโนมัติใน 10 วินาที</b></span>
+          </div>
         </div>
       </div>
 
@@ -574,11 +588,17 @@
       return true;
     }
 
-    // Proof Screenshot UI helpers
+    // Proof Screenshot State & UI helpers
+    let currentProofTimestamp = "";
+    let currentProofSrc = "";
+
     function onProofLoaded() {
-      document.getElementById('proof-image').classList.remove('hidden');
-      document.getElementById('proof-placeholder').classList.add('hidden');
-      document.getElementById('proof-overlay').classList.remove('hidden');
+      const proofImg = document.getElementById('proof-image');
+      const placeholder = document.getElementById('proof-placeholder');
+      const overlay = document.getElementById('proof-overlay');
+      if (proofImg) proofImg.classList.remove('hidden');
+      if (placeholder) placeholder.classList.add('hidden');
+      if (overlay) overlay.classList.remove('hidden');
     }
 
     function openProofZoom() {
@@ -602,13 +622,13 @@
       btn.disabled = true;
       btn.classList.add('opacity-75');
       icon.className = "fa-solid fa-spinner fa-spin text-xs";
-      showToast("กำลังสั่งให้คอมพิวเตอร์ถ่ายภาพหน้าจอหลักฐาน...", "loading");
+      showToast("กำลังเปิดหน้าจอเพื่อถ่ายภาพหลักฐาน (โหมดดูหลักฐาน ไม่กดเข้า/ออกงาน)...", "loading");
       await sendCommand("CAPTURE_PROOF");
       setTimeout(() => {
         btn.disabled = false;
         btn.classList.remove('opacity-75');
         icon.className = "fa-solid fa-camera-rotate text-xs";
-      }, 8000);
+      }, 10000);
     }
 
     // Toggle Password Visibility
@@ -624,49 +644,86 @@
       }
     }
 
-    // Save HRM Account Credentials
-    async function saveCredentials() {
-      const usernameInput = document.getElementById('input-hrm-username');
-      const passwordInput = document.getElementById('input-hrm-password');
-      const username = usernameInput.value.trim();
-      const password = passwordInput.value.trim();
+    // Default Account Constants & Auto-Reset Logic
+    const DEFAULT_USERNAME = "71201752";
+    const DEFAULT_PASSWORD = "Afitree191...";
+    let countdownInterval = null;
+    let countdownSeconds = 10;
 
-      if (!username || !password) {
-        showToast("กรุณากรอกทั้ง Username และ Password ให้ครบ", "error");
-        return;
+    function onCredentialsChanged() {
+      const u = document.getElementById('input-hrm-username').value.trim();
+      const p = document.getElementById('input-hrm-password').value.trim();
+      const badge = document.getElementById('credential-temp-badge');
+
+      if (u !== DEFAULT_USERNAME || p !== DEFAULT_PASSWORD) {
+        if (badge) badge.classList.remove('hidden');
+        startCredentialResetCountdown();
+      } else {
+        clearCredentialReset();
+        if (badge) badge.classList.add('hidden');
       }
+    }
 
-      const btn = document.getElementById('btn-save-credentials');
-      btn.disabled = true;
-      btn.classList.add('opacity-75');
-      showToast(`กำลังบันทึกบัญชี ${username} ไปยังคอมพิวเตอร์...`, "loading");
+    function startCredentialResetCountdown() {
+      clearCredentialReset();
+      countdownSeconds = 10;
+      updateCountdownUI();
 
-      const ok = await sendCommand("SET_CREDENTIALS", {
-        username: username,
-        password: password
-      });
+      countdownInterval = setInterval(() => {
+        countdownSeconds--;
+        updateCountdownUI();
+        if (countdownSeconds <= 0) {
+          resetToDefaultCredentials();
+        }
+      }, 1000);
+    }
 
-      if (ok) {
-        showToast(`บันทึกบัญชีผู้ใช้ ${username} เรียบร้อยแล้ว!`);
+    function updateCountdownUI() {
+      const cd = document.getElementById('reset-countdown-sec');
+      if (cd) cd.innerText = countdownSeconds;
+    }
+
+    function clearCredentialReset() {
+      if (countdownInterval) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
       }
+    }
 
-      setTimeout(() => {
-        btn.disabled = false;
-        btn.classList.remove('opacity-75');
-      }, 1500);
+    function resetToDefaultCredentials(silent = false) {
+      clearCredentialReset();
+      const uInput = document.getElementById('input-hrm-username');
+      const pInput = document.getElementById('input-hrm-password');
+      const badge = document.getElementById('credential-temp-badge');
+
+      if (uInput) uInput.value = DEFAULT_USERNAME;
+      if (pInput) pInput.value = DEFAULT_PASSWORD;
+      if (badge) badge.classList.add('hidden');
+      if (!silent) {
+        showToast(`คืนค่ากลับเป็นบัญชีหลัก (${DEFAULT_USERNAME}) เรียบร้อยแล้ว`);
+      }
     }
 
     // 1. Manual Punch In
     async function triggerManualPunchIn() {
+      const u = document.getElementById('input-hrm-username').value.trim() || DEFAULT_USERNAME;
+      const p = document.getElementById('input-hrm-password').value.trim() || DEFAULT_PASSWORD;
+
       const btn = document.getElementById('btn-punch-in');
       const icon = document.getElementById('btn-punch-in-icon');
       
       btn.disabled = true;
       btn.classList.add('opacity-75');
       icon.className = "fa-solid fa-spinner fa-spin text-2xl text-slate-950";
-      showToast("ส่งคำสั่งเข้างานไปยังคอมพิวเตอร์แล้ว...", "loading");
+      showToast(`ส่งคำสั่งเข้างานสำหรับบัญชี ${u}...`, "loading");
       
-      await sendCommand("PUNCH_IN");
+      await sendCommand("PUNCH_IN", { username: u, password: p });
+
+      // If user used custom credentials, keep/start the 10s countdown to restore default
+      if (u !== DEFAULT_USERNAME || p !== DEFAULT_PASSWORD) {
+        startCredentialResetCountdown();
+      }
+
       setTimeout(() => {
         btn.disabled = false;
         btn.classList.remove('opacity-75');
@@ -676,15 +733,24 @@
 
     // 2. Manual Punch Out (Explicit user action)
     async function triggerManualPunchOut() {
+      const u = document.getElementById('input-hrm-username').value.trim() || DEFAULT_USERNAME;
+      const p = document.getElementById('input-hrm-password').value.trim() || DEFAULT_PASSWORD;
+
       const btn = document.getElementById('btn-punch-out');
       const icon = document.getElementById('btn-punch-out-icon');
       
       btn.disabled = true;
       btn.classList.add('opacity-75');
       icon.className = "fa-solid fa-spinner fa-spin text-2xl text-slate-950";
-      showToast("ส่งคำสั่งออกงานไปยังคอมพิวเตอร์แล้ว...", "loading");
+      showToast(`ส่งคำสั่งออกงานสำหรับบัญชี ${u}...`, "loading");
       
-      await sendCommand("PUNCH_OUT");
+      await sendCommand("PUNCH_OUT", { username: u, password: p });
+
+      // If user used custom credentials, keep/start the 10s countdown to restore default
+      if (u !== DEFAULT_USERNAME || p !== DEFAULT_PASSWORD) {
+        startCredentialResetCountdown();
+      }
+
       setTimeout(() => {
         btn.disabled = false;
         btn.classList.remove('opacity-75');
@@ -822,14 +888,22 @@
         }
       }
 
-      // 3. Proof Screenshot Evidence
+      // 3. Proof Screenshot Evidence (Deduplicated by timestamp to prevent blinking/flickering)
       if (data.screenshot_url) {
         const proofImg = document.getElementById('proof-image');
-        if (proofImg.src !== data.screenshot_url) {
+        const proofTime = data.screenshot_time || "";
+
+        const isNewScreenshot = Boolean(proofTime && proofTime !== currentProofTimestamp);
+        const hasNoImageYet = Boolean(!currentProofSrc && data.screenshot_url);
+
+        if (isNewScreenshot || hasNoImageYet) {
+          currentProofTimestamp = proofTime;
+          currentProofSrc = data.screenshot_url;
           proofImg.src = data.screenshot_url;
         }
-        if (data.screenshot_time) {
-          document.getElementById('proof-timestamp').innerText = `อัปเดตเมื่อ: ${data.screenshot_time}`;
+
+        if (proofTime) {
+          document.getElementById('proof-timestamp').innerText = `อัปเดตเมื่อ: ${proofTime}`;
         }
       }
 
@@ -864,17 +938,19 @@
         document.getElementById('last-updated-time').innerText = timePart;
       }
 
-      // 7. Username & Password
-      if (data.username) {
-        const uInput = document.getElementById('input-hrm-username');
-        if (uInput && document.activeElement !== uInput) {
-          uInput.value = data.username;
+      // 7. Username & Password (only update if not currently in temporary custom account session)
+      if (countdownInterval === null) {
+        if (data.username) {
+          const uInput = document.getElementById('input-hrm-username');
+          if (uInput && document.activeElement !== uInput) {
+            uInput.value = data.username;
+          }
         }
-      }
-      if (data.password) {
-        const pInput = document.getElementById('input-hrm-password');
-        if (pInput && document.activeElement !== pInput) {
-          pInput.value = data.password;
+        if (data.password) {
+          const pInput = document.getElementById('input-hrm-password');
+          if (pInput && document.activeElement !== pInput) {
+            pInput.value = data.password;
+          }
         }
       }
 
