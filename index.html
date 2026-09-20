@@ -367,6 +367,50 @@
         </div>
       </div>
 
+      <!-- Account Credentials Settings Card -->
+      <div class="glass-card rounded-3xl p-5 shadow-2xl space-y-4 border border-slate-700/40">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800/80">
+          <div class="flex items-center space-x-2.5">
+            <div class="w-8 h-8 rounded-xl bg-blue-500/15 text-blue-400 flex items-center justify-center text-sm">
+              <i class="fa-solid fa-user-gear"></i>
+            </div>
+            <div>
+              <h2 class="text-sm font-bold text-white">บัญชีผู้ใช้ HRM (Username / Password)</h2>
+              <p class="text-[11px] text-slate-400">เปลี่ยนรหัสผ่านหรือสลับรหัสพนักงาน</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="space-y-3">
+          <!-- Username Input -->
+          <div class="bg-slate-900/90 rounded-2xl p-3 border border-slate-700/70 focus-within:border-blue-500 transition">
+            <label class="text-[11px] text-slate-400 font-medium flex items-center gap-1.5 mb-1">
+              <i class="fa-solid fa-id-card text-[10px] text-blue-400"></i> รหัสพนักงาน (Username)
+            </label>
+            <input type="text" id="input-hrm-username" value="71201752" placeholder="เช่น 71201752" class="w-full bg-transparent text-white font-mono font-bold text-base focus:outline-none placeholder-slate-600">
+          </div>
+
+          <!-- Password Input -->
+          <div class="bg-slate-900/90 rounded-2xl p-3 border border-slate-700/70 focus-within:border-blue-500 transition relative">
+            <label class="text-[11px] text-slate-400 font-medium flex items-center gap-1.5 mb-1">
+              <i class="fa-solid fa-key text-[10px] text-blue-400"></i> รหัสผ่าน HRM (Password)
+            </label>
+            <div class="flex items-center">
+              <input type="password" id="input-hrm-password" placeholder="กรอกรหัสผ่านใหม่เมื่อต้องการเปลี่ยน" class="w-full bg-transparent text-white font-mono font-bold text-base focus:outline-none placeholder-slate-600 pr-8">
+              <button type="button" onclick="togglePasswordVisibility()" class="text-slate-400 hover:text-slate-200 p-1 text-xs">
+                <i id="eye-icon" class="fa-solid fa-eye"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Save Credentials Button -->
+          <button id="btn-save-credentials" onclick="saveCredentials()" class="btn-glow w-full bg-slate-800 hover:bg-slate-700/90 border border-blue-500/40 text-blue-400 font-bold py-3 px-4 rounded-2xl text-sm flex items-center justify-center gap-2 transition active:scale-98 shadow-md">
+            <i class="fa-solid fa-floppy-disk"></i>
+            <span>บันทึกข้อมูลบัญชีใหม่</span>
+          </button>
+        </div>
+      </div>
+
       <!-- Danger Zone / 1-Click Uninstaller -->
       <div class="glass-card rounded-3xl p-5 shadow-2xl space-y-3.5 border border-rose-950/50 relative overflow-hidden">
         <div class="flex items-center justify-between">
@@ -525,6 +569,52 @@
         btn.classList.remove('opacity-75');
         icon.className = "fa-solid fa-camera-rotate text-xs";
       }, 8000);
+    }
+
+    // Toggle Password Visibility
+    function togglePasswordVisibility() {
+      const pwd = document.getElementById('input-hrm-password');
+      const icon = document.getElementById('eye-icon');
+      if (pwd.type === 'password') {
+        pwd.type = 'text';
+        icon.className = 'fa-solid fa-eye-slash';
+      } else {
+        pwd.type = 'password';
+        icon.className = 'fa-solid fa-eye';
+      }
+    }
+
+    // Save HRM Account Credentials
+    async function saveCredentials() {
+      const usernameInput = document.getElementById('input-hrm-username');
+      const passwordInput = document.getElementById('input-hrm-password');
+      const username = usernameInput.value.trim();
+      const password = passwordInput.value.trim();
+
+      if (!username || !password) {
+        showToast("กรุณากรอกทั้ง Username และ Password ให้ครบ", "error");
+        return;
+      }
+
+      const btn = document.getElementById('btn-save-credentials');
+      btn.disabled = true;
+      btn.classList.add('opacity-75');
+      showToast(`กำลังบันทึกบัญชี ${username} ไปยังคอมพิวเตอร์...`, "loading");
+
+      const ok = await sendCommand("SET_CREDENTIALS", {
+        username: username,
+        password: password
+      });
+
+      if (ok) {
+        showToast(`บันทึกบัญชีผู้ใช้ ${username} เรียบร้อยแล้ว!`);
+        passwordInput.value = "";
+      }
+
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.classList.remove('opacity-75');
+      }, 1500);
     }
 
     // 1. Manual Punch In
@@ -733,6 +823,14 @@
       if (data.updated_at) {
         const timePart = data.updated_at.split(' ')[1] || data.updated_at;
         document.getElementById('last-updated-time').innerText = timePart;
+      }
+
+      // 7. Username
+      if (data.username) {
+        const uInput = document.getElementById('input-hrm-username');
+        if (uInput && document.activeElement !== uInput) {
+          uInput.value = data.username;
+        }
       }
 
       if (data.notice) {
