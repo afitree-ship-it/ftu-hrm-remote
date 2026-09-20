@@ -1,0 +1,677 @@
+<!DOCTYPE html>
+<html lang="th" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>FTU HRM Smart Remote</title>
+  <meta name="theme-color" content="#020617">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="FTU HRM Remote">
+  <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Prompt:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Prompt"', '"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace']
+          },
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              400: '#34d399',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              900: '#064e3b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    * {
+      -webkit-tap-highlight-color: transparent;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: 'Prompt', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      touch-action: manipulation;
+      background-color: #020617;
+      color: #f8fafc;
+      overflow-x: hidden;
+      padding-top: env(safe-area-inset-top);
+      padding-bottom: env(safe-area-inset-bottom);
+    }
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-card {
+      background: linear-gradient(135deg, rgba(30, 41, 59, 0.7) 0%, rgba(15, 23, 42, 0.85) 100%);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .btn-glow {
+      position: relative;
+      overflow: hidden;
+    }
+    .btn-glow::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(60deg, transparent, rgba(255, 255, 255, 0.15), transparent);
+      transform: rotate(30deg);
+      transition: transform 0.8s ease;
+    }
+    .btn-glow:active::after {
+      transform: rotate(30deg) translate(50%, 50%);
+    }
+    input[type="time"]::-webkit-calendar-picker-indicator {
+      filter: invert(0.8) sepia(1) saturate(5) hue-rotate(95deg);
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body class="min-h-screen pb-16 selection:bg-brand-500 selection:text-slate-950">
+
+  <!-- Ambient Glow Background -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden z-0">
+    <div class="absolute -top-32 -left-32 w-80 h-80 bg-brand-500/10 rounded-full blur-3xl"></div>
+    <div class="absolute top-1/3 -right-32 w-80 h-80 bg-amber-500/10 rounded-full blur-3xl"></div>
+  </div>
+
+  <!-- Main Container -->
+  <div class="relative z-10 max-w-md mx-auto flex flex-col min-h-screen">
+
+    <!-- Top App Bar -->
+    <header class="sticky top-0 z-30 glass-panel px-5 py-4 border-b border-slate-800/80 flex items-center justify-between shadow-lg shadow-black/20">
+      <div class="flex items-center space-x-3.5">
+        <div class="relative">
+          <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-brand-600 via-emerald-500 to-teal-400 flex items-center justify-center text-slate-950 shadow-lg shadow-emerald-500/25">
+            <i class="fa-solid fa-fingerprint text-2xl"></i>
+          </div>
+          <span id="conn-ping" class="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 border-2 border-slate-950"></span>
+          </span>
+        </div>
+        <div>
+          <h1 class="text-base font-bold tracking-tight text-white flex items-center gap-1.5">
+            FTU HRM Remote
+            <span class="text-[10px] px-1.5 py-0.5 rounded bg-brand-500/20 text-brand-400 font-mono font-medium">v2.1</span>
+          </h1>
+          <p id="conn-text" class="text-xs text-brand-400 font-medium">เชื่อมต่อกับ PC สำเร็จ</p>
+        </div>
+      </div>
+
+      <div class="flex items-center space-x-2">
+        <button onclick="fetchStatus(true)" title="รีเฟรชสถานะ" class="w-10 h-10 rounded-xl bg-slate-800/90 hover:bg-slate-700 active:scale-95 flex items-center justify-center text-slate-300 border border-slate-700/60 shadow-sm transition">
+          <i id="refresh-icon" class="fa-solid fa-arrows-rotate text-sm"></i>
+        </button>
+      </div>
+    </header>
+
+    <!-- App Body Content -->
+    <main class="flex-1 px-4 pt-5 space-y-4">
+
+      <!-- Live Attendance Status Banner -->
+      <div id="attendance-banner" class="rounded-3xl p-4 shadow-xl border border-emerald-500/30 bg-gradient-to-r from-emerald-950/70 via-slate-900/90 to-teal-950/70 flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div id="attendance-icon-box" class="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg border border-emerald-500/30">
+            <i class="fa-solid fa-circle-check"></i>
+          </div>
+          <div>
+            <p class="text-[11px] text-slate-400 font-medium">สถานะการลงเวลา HRM วันนี้</p>
+            <p id="card-attendance-state" class="text-sm font-extrabold text-emerald-400">เข้างานแล้ว (Punched In)</p>
+          </div>
+        </div>
+        <span id="card-attendance-badge" class="text-[10px] px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30">
+          บันทึกแล้ว
+        </span>
+      </div>
+
+      <!-- Real-Time Status Overview Card -->
+      <div class="glass-card rounded-3xl p-5 shadow-2xl space-y-4 border border-slate-700/40 relative overflow-hidden">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-desktop text-xs text-slate-400"></i>
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400">สถานะเครื่องคอมพิวเตอร์</span>
+          </div>
+          <span id="status-badge" class="px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            ออนไลน์ พร้อมรับคำสั่ง
+          </span>
+        </div>
+
+        <!-- Schedule Grid -->
+        <div class="grid grid-cols-2 gap-3 pt-1">
+          <!-- Time Window Card -->
+          <div class="bg-slate-900/80 rounded-2xl p-3.5 border border-slate-800/80 flex flex-col justify-between">
+            <span class="text-[11px] text-slate-400 font-medium flex items-center gap-1.5">
+              <i class="fa-regular fa-clock text-brand-400"></i> ช่วงเวลาทำงาน
+            </span>
+            <div class="my-1.5">
+              <div id="card-schedule-window" class="text-lg font-extrabold text-white tracking-tight">07:00 - 08:30</div>
+              <div class="text-[10px] text-slate-400">เริ่มรันที่ <span id="card-time-start" class="text-brand-400 font-semibold">07:00</span> น.</div>
+            </div>
+            <div class="flex items-center gap-1 pt-1 border-t border-slate-800/60">
+              <span class="text-[10px] text-emerald-400 font-medium">
+                <i class="fa-solid fa-calendar-check text-[9px]"></i> อา - พฤ (5 วัน)
+              </span>
+            </div>
+          </div>
+
+          <!-- Auto State Card -->
+          <div class="bg-slate-900/80 rounded-2xl p-3.5 border border-slate-800/80 flex flex-col justify-between">
+            <span class="text-[11px] text-slate-400 font-medium flex items-center gap-1.5">
+              <i class="fa-solid fa-robot text-teal-400"></i> ระบบอัตโนมัติ
+            </span>
+            <div class="my-1.5">
+              <div id="card-auto-status" class="text-lg font-extrabold text-emerald-400 tracking-tight">เปิดใช้งาน</div>
+              <div class="text-[10px] text-slate-400">Task Scheduler: <span id="card-task-state" class="text-slate-300">Ready</span></div>
+            </div>
+            <div class="flex items-center gap-1 pt-1 border-t border-slate-800/60">
+              <span class="text-[10px] text-slate-400 truncate">
+                <i class="fa-solid fa-shield-check text-[9px] text-teal-400"></i> เข้างานอัตโนมัติรอบเช้า
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Last Activity snippet -->
+        <div class="bg-slate-950/60 rounded-2xl p-3 border border-slate-800/60">
+          <div class="flex items-center justify-between text-[11px] text-slate-400 mb-1">
+            <span class="flex items-center gap-1.5">
+              <i class="fa-solid fa-list-check text-slate-400"></i> กิจกรรมล่าสุด:
+            </span>
+            <span id="last-updated-time" class="text-[10px] text-slate-500 font-mono">--:--:--</span>
+          </div>
+          <p id="last-log-text" class="text-xs text-slate-300 font-mono truncate select-all">
+            ระบบทำงานพร้อมตรวจเช็คเวลา
+          </p>
+        </div>
+      </div>
+
+      <!-- Hero Action Buttons: Dual Punch In & Punch Out -->
+      <div class="space-y-3">
+        <!-- 1. Punch In Button -->
+        <button id="btn-punch-in" onclick="triggerManualPunchIn()" class="btn-glow w-full bg-gradient-to-r from-emerald-500 via-brand-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 active:scale-[0.98] text-slate-950 font-bold p-4 rounded-3xl shadow-xl shadow-brand-500/25 flex items-center justify-between transition-all duration-200 group">
+          <div class="flex items-center space-x-3.5 text-left">
+            <div class="w-12 h-12 rounded-2xl bg-slate-950/15 flex items-center justify-center text-slate-950">
+              <i id="btn-punch-in-icon" class="fa-solid fa-right-to-bracket text-2xl group-hover:scale-110 transition-transform"></i>
+            </div>
+            <div>
+              <div class="text-base font-extrabold tracking-tight">สั่งกดเข้างาน (Punch In)</div>
+              <div class="text-[11px] font-medium text-emerald-950/80">บันทึกเวลาเข้างาน HRM ทันที</div>
+            </div>
+          </div>
+          <div class="w-9 h-9 rounded-xl bg-slate-950/10 flex items-center justify-center text-slate-950">
+            <i class="fa-solid fa-chevron-right text-xs"></i>
+          </div>
+        </button>
+
+        <!-- 2. Punch Out Button (Manual Only) -->
+        <button id="btn-punch-out" onclick="triggerManualPunchOut()" class="btn-glow w-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 active:scale-[0.98] text-slate-950 font-bold p-4 rounded-3xl shadow-xl shadow-orange-500/20 flex items-center justify-between transition-all duration-200 group">
+          <div class="flex items-center space-x-3.5 text-left">
+            <div class="w-12 h-12 rounded-2xl bg-slate-950/15 flex items-center justify-center text-slate-950">
+              <i id="btn-punch-out-icon" class="fa-solid fa-right-from-bracket text-2xl group-hover:scale-110 transition-transform"></i>
+            </div>
+            <div>
+              <div class="text-base font-extrabold tracking-tight">สั่งกดออกงาน (Punch Out)</div>
+              <div class="text-[11px] font-medium text-amber-950/80">บันทึกเวลาเลิกงาน (ทำงานเฉพาะเมื่อคุณกดปุ่มนี้)</div>
+            </div>
+          </div>
+          <div class="w-9 h-9 rounded-xl bg-slate-950/10 flex items-center justify-center text-slate-950">
+            <i class="fa-solid fa-chevron-right text-xs"></i>
+          </div>
+        </button>
+
+        <div class="flex items-center justify-center gap-2 text-[11px] text-slate-400 font-medium text-center">
+          <i class="fa-solid fa-lock text-brand-400"></i>
+          <span>ระบบออโต้รอบเช้าจะ <b>"เข้างานอย่างเดียว"</b> ส่วนการออกงานจะทำเมื่อคุณกดปุ่มส้มนี้เท่านั้น</span>
+        </div>
+      </div>
+
+      <!-- Settings Card: Time Window & Schedule -->
+      <div class="glass-card rounded-3xl p-5 shadow-2xl space-y-4 border border-slate-700/40">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800/80">
+          <div class="flex items-center space-x-2.5">
+            <div class="w-8 h-8 rounded-xl bg-brand-500/15 text-brand-400 flex items-center justify-center text-sm">
+              <i class="fa-solid fa-sliders"></i>
+            </div>
+            <div>
+              <h2 class="text-sm font-bold text-white">ตั้งค่าเวลาทำงานอัตโนมัติ</h2>
+              <p class="text-[11px] text-slate-400">ปรับช่วงเวลาและสวิตช์เปิด/ปิด</p>
+            </div>
+          </div>
+
+          <!-- Switch Toggle -->
+          <label class="relative inline-flex items-center cursor-pointer">
+            <input type="checkbox" id="auto-toggle" checked onchange="toggleAutoSchedule(this.checked)" class="sr-only peer">
+            <div class="w-12 h-6 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[3px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-500 shadow-inner"></div>
+          </label>
+        </div>
+
+        <!-- Time Window Pickers (Start Time & End Time) -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-semibold text-slate-300">ช่วงเวลาทำงานเช้า (Start - End)</span>
+            <span class="text-[10px] text-slate-400">นาฬิกา 24 ชม.</span>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <!-- Start Time -->
+            <div class="bg-slate-900/90 rounded-2xl p-3 border border-slate-700/70 focus-within:border-brand-500 transition">
+              <label class="text-[11px] text-slate-400 font-medium flex items-center gap-1.5 mb-1">
+                <i class="fa-solid fa-play text-[10px] text-brand-400"></i> เวลาเริ่มต้น
+              </label>
+              <input type="time" id="input-time-start" value="07:00" class="w-full bg-transparent text-white font-mono font-bold text-lg focus:outline-none">
+            </div>
+
+            <!-- End Time -->
+            <div class="bg-slate-900/90 rounded-2xl p-3 border border-slate-700/70 focus-within:border-brand-500 transition">
+              <label class="text-[11px] text-slate-400 font-medium flex items-center gap-1.5 mb-1">
+                <i class="fa-solid fa-flag-checkered text-[10px] text-teal-400"></i> เวลาสิ้นสุด
+              </label>
+              <input type="time" id="input-time-end" value="08:30" class="w-full bg-transparent text-white font-mono font-bold text-lg focus:outline-none">
+            </div>
+          </div>
+
+          <!-- Quick Preset Chips -->
+          <div>
+            <p class="text-[11px] text-slate-400 mb-1.5">เลือกช่วงเวลายอดนิยมด่วน:</p>
+            <div class="flex flex-wrap gap-2">
+              <button onclick="applyPreset('07:00', '08:30')" class="preset-btn px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-200 transition active:scale-95">
+                07:00 – 08:30
+              </button>
+              <button onclick="applyPreset('07:15', '08:30')" class="preset-btn px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-200 transition active:scale-95">
+                07:15 – 08:30
+              </button>
+              <button onclick="applyPreset('07:30', '08:45')" class="preset-btn px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-200 transition active:scale-95">
+                07:30 – 08:45
+              </button>
+              <button onclick="applyPreset('06:45', '08:15')" class="preset-btn px-3 py-1.5 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-200 transition active:scale-95">
+                06:45 – 08:15
+              </button>
+            </div>
+          </div>
+
+          <!-- Save Button -->
+          <button id="btn-save-schedule" onclick="saveScheduleWindow()" class="btn-glow w-full bg-slate-800 hover:bg-slate-700/90 border border-brand-500/40 text-brand-400 font-bold py-3 px-4 rounded-2xl text-sm flex items-center justify-center gap-2 transition active:scale-98 shadow-md">
+            <i class="fa-solid fa-floppy-disk"></i>
+            <span>บันทึกการตั้งค่าช่วงเวลา</span>
+          </button>
+        </div>
+
+        <!-- Workdays schedule badge list -->
+        <div class="pt-2 border-t border-slate-800/60 flex items-center justify-between text-[11px] text-slate-400">
+          <span>วันทำงานที่ระบบจะรัน:</span>
+          <div class="flex items-center gap-1">
+            <span class="px-1.5 py-0.5 rounded bg-brand-500/10 text-brand-400 font-semibold">อา.</span>
+            <span class="px-1.5 py-0.5 rounded bg-brand-500/10 text-brand-400 font-semibold">จ.</span>
+            <span class="px-1.5 py-0.5 rounded bg-brand-500/10 text-brand-400 font-semibold">อ.</span>
+            <span class="px-1.5 py-0.5 rounded bg-brand-500/10 text-brand-400 font-semibold">พ.</span>
+            <span class="px-1.5 py-0.5 rounded bg-brand-500/10 text-brand-400 font-semibold">พฤ.</span>
+            <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-500 line-through">ศ.</span>
+            <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-500 line-through">ส.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Danger Zone / 1-Click Uninstaller -->
+      <div class="glass-card rounded-3xl p-5 shadow-2xl space-y-3.5 border border-rose-950/50 relative overflow-hidden">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2.5">
+            <div class="w-8 h-8 rounded-xl bg-rose-500/15 text-rose-400 flex items-center justify-center text-sm">
+              <i class="fa-solid fa-trash-can"></i>
+            </div>
+            <div>
+              <h2 class="text-sm font-bold text-rose-300">1-Click Uninstaller</h2>
+              <p class="text-[11px] text-slate-400">ถอนการติดตั้งและลบระบบทั้งหมดบนคอม</p>
+            </div>
+          </div>
+        </div>
+
+        <button onclick="openUninstallModal()" class="w-full bg-rose-950/40 hover:bg-rose-900/50 border border-rose-500/30 hover:border-rose-500/60 text-rose-300 font-semibold py-3 px-4 rounded-2xl text-xs flex items-center justify-center gap-2 transition active:scale-98">
+          <i class="fa-solid fa-triangle-exclamation text-rose-400"></i>
+          <span>สั่งถอนการติดตั้งระบบบนคอมพิวเตอร์ระยะไกล</span>
+        </button>
+      </div>
+
+    </main>
+
+  </div>
+
+  <!-- Safety Confirmation Modal for Uninstall -->
+  <div id="modal-uninstall" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-md hidden items-center justify-center p-4">
+    <div class="glass-card max-w-sm w-full rounded-3xl p-6 space-y-4 border border-rose-500/40 shadow-2xl animate-scale-in">
+      <div class="w-14 h-14 rounded-2xl bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto text-2xl border border-rose-500/30">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </div>
+      
+      <div class="text-center space-y-1.5">
+        <h3 class="text-base font-bold text-white">ยืนยันถอนการติดตั้งระบบ?</h3>
+        <p class="text-xs text-slate-400 leading-relaxed">
+          หากยืนยัน คำสั่งจะถูกส่งไปยังคอมพิวเตอร์เพื่อลบ Task Scheduler, ไฟล์ระบบใน Startup, ทางลัดบน Desktop และบันทึกทั้งหมดออกอย่างหมดจด
+        </p>
+      </div>
+
+      <div class="bg-rose-950/40 rounded-2xl p-3 border border-rose-800/40 text-[11px] text-rose-300 flex items-center gap-2">
+        <i class="fa-solid fa-circle-info text-xs"></i>
+        <span>การกระทำนี้ไม่สามารถย้อนกลับได้</span>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 pt-2">
+        <button onclick="closeUninstallModal()" class="py-3 px-4 rounded-2xl bg-slate-800 text-slate-300 text-xs font-bold hover:bg-slate-700 transition">
+          ยกเลิก
+        </button>
+        <button onclick="executeRemoteUninstall()" class="py-3 px-4 rounded-2xl bg-gradient-to-r from-rose-600 to-red-600 text-white text-xs font-bold hover:from-rose-500 hover:to-red-500 shadow-lg shadow-rose-600/30 transition">
+          ยืนยันลบทิ้ง
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Floating Toast Notification -->
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 glass-panel px-4 py-3 rounded-2xl shadow-2xl border border-slate-700 text-xs font-medium text-white opacity-0 pointer-events-none transition-all duration-300 flex items-center gap-2.5 max-w-[90vw]">
+    <div id="toast-icon-container" class="w-6 h-6 rounded-lg bg-brand-500/20 text-brand-400 flex items-center justify-center text-xs">
+      <i id="toast-icon" class="fa-solid fa-circle-check"></i>
+    </div>
+    <span id="toast-msg" class="truncate">ข้อความแจ้งเตือน</span>
+  </div>
+
+  <!-- Application Logic & Relay Client -->
+  <script>
+    const DEVICE_ID = "ftu_hrm_views_9918";
+    const CMD_TOPIC = `${DEVICE_ID}_cmd`;
+    const STATUS_TOPIC = `${DEVICE_ID}_status`;
+
+    let toastTimer = null;
+
+    function showToast(msg, type = "info") {
+      const toast = document.getElementById('toast');
+      const toastMsg = document.getElementById('toast-msg');
+      const toastIcon = document.getElementById('toast-icon');
+      const toastIconContainer = document.getElementById('toast-icon-container');
+      
+      toastMsg.innerText = msg;
+      if (type === "error") {
+        toastIcon.className = "fa-solid fa-circle-exclamation";
+        toastIconContainer.className = "w-6 h-6 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center text-xs";
+      } else if (type === "loading") {
+        toastIcon.className = "fa-solid fa-spinner fa-spin";
+        toastIconContainer.className = "w-6 h-6 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center text-xs";
+      } else if (type === "warning") {
+        toastIcon.className = "fa-solid fa-bell";
+        toastIconContainer.className = "w-6 h-6 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center text-xs";
+      } else {
+        toastIcon.className = "fa-solid fa-circle-check";
+        toastIconContainer.className = "w-6 h-6 rounded-lg bg-brand-500/20 text-brand-400 flex items-center justify-center text-xs";
+      }
+      
+      clearTimeout(toastTimer);
+      toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-2');
+      toastTimer = setTimeout(() => {
+        toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-2');
+      }, 4500);
+    }
+
+    async function sendCommand(action, payload = {}) {
+      const data = { action, ...payload, timestamp: Date.now() };
+      try {
+        const resp = await fetch(`https://ntfy.sh/${CMD_TOPIC}`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        if (!resp.ok) throw new Error("HTTP error " + resp.status);
+        return true;
+      } catch (e) {
+        showToast("ส่งคำสั่งไม่สำเร็จ ตรวจสอบอินเทอร์เน็ต", "error");
+        return false;
+      }
+    }
+
+    // 1. Manual Punch In
+    async function triggerManualPunchIn() {
+      const btn = document.getElementById('btn-punch-in');
+      const icon = document.getElementById('btn-punch-in-icon');
+      
+      btn.disabled = true;
+      btn.classList.add('opacity-75');
+      icon.className = "fa-solid fa-spinner fa-spin text-2xl text-slate-950";
+      showToast("ส่งคำสั่งเข้างานไปยังคอมพิวเตอร์แล้ว...", "loading");
+      
+      await sendCommand("PUNCH_IN");
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.classList.remove('opacity-75');
+        icon.className = "fa-solid fa-right-to-bracket text-2xl group-hover:scale-110 transition-transform";
+      }, 7000);
+    }
+
+    // 2. Manual Punch Out (Explicit user action)
+    async function triggerManualPunchOut() {
+      const btn = document.getElementById('btn-punch-out');
+      const icon = document.getElementById('btn-punch-out-icon');
+      
+      btn.disabled = true;
+      btn.classList.add('opacity-75');
+      icon.className = "fa-solid fa-spinner fa-spin text-2xl text-slate-950";
+      showToast("ส่งคำสั่งออกงานไปยังคอมพิวเตอร์แล้ว...", "loading");
+      
+      await sendCommand("PUNCH_OUT");
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.classList.remove('opacity-75');
+        icon.className = "fa-solid fa-right-from-bracket text-2xl group-hover:scale-110 transition-transform";
+      }, 7000);
+    }
+
+    // 3. Preset Pill Applicator
+    function applyPreset(start, end) {
+      document.getElementById('input-time-start').value = start;
+      document.getElementById('input-time-end').value = end;
+      showToast(`เลือกช่วงเวลา ${start} - ${end} แล้ว (กดปุ่มบันทึกเพื่อใช้งาน)`);
+    }
+
+    // 4. Save Schedule Window
+    async function saveScheduleWindow() {
+      const start = document.getElementById('input-time-start').value;
+      const end = document.getElementById('input-time-end').value;
+      
+      if (!start || !end) {
+        showToast("กรุณากรอกทั้งเวลาเริ่มและเวลาสิ้นสุด", "error");
+        return;
+      }
+
+      const btn = document.getElementById('btn-save-schedule');
+      btn.disabled = true;
+      btn.classList.add('opacity-75');
+
+      showToast(`กำลังบันทึกช่วงเวลา ${start} - ${end} น....`, "loading");
+      
+      const ok = await sendCommand("SET_SCHEDULE", {
+        time_start: start,
+        time_end: end
+      });
+
+      if (ok) {
+        document.getElementById('card-schedule-window').innerText = `${start} - ${end}`;
+        document.getElementById('card-time-start').innerText = start;
+      }
+
+      setTimeout(() => {
+        btn.disabled = false;
+        btn.classList.remove('opacity-75');
+      }, 1500);
+    }
+
+    // 5. Toggle Auto Schedule
+    async function toggleAutoSchedule(enabled) {
+      const statusText = document.getElementById('card-auto-status');
+      statusText.innerText = enabled ? "เปิดใช้งาน" : "ปิดใช้งาน";
+      statusText.className = enabled ? "text-lg font-extrabold text-emerald-400 tracking-tight" : "text-lg font-extrabold text-slate-500 tracking-tight";
+      
+      showToast(enabled ? "เปิดการทำงานอัตโนมัติรอบเช้าแล้ว" : "ปิดระบบอัตโนมัติชั่วคราวแล้ว");
+      await sendCommand("TOGGLE_AUTO", { enable: enabled });
+    }
+
+    // 6. 1-Click Uninstall Modal & Action
+    function openUninstallModal() {
+      const modal = document.getElementById('modal-uninstall');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeUninstallModal() {
+      const modal = document.getElementById('modal-uninstall');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    async function executeRemoteUninstall() {
+      closeUninstallModal();
+      showToast("กำลังส่งคำสั่งถอนการติดตั้งไปยังเครื่องคอมพิวเตอร์...", "loading");
+      await sendCommand("UNINSTALL");
+    }
+
+    // 7. Fetch & Update Status
+    async function fetchStatus(isManual = false) {
+      const refreshIcon = document.getElementById('refresh-icon');
+      if (refreshIcon) refreshIcon.classList.add('animate-spin');
+
+      try {
+        const resp = await fetch(`https://ntfy.sh/${STATUS_TOPIC}/json?poll=1`);
+        const text = await resp.text();
+        const lines = text.trim().split('\n');
+        if (lines.length > 0 && lines[lines.length - 1]) {
+          const msgObj = JSON.parse(lines[lines.length - 1]);
+          if (msgObj.message) {
+            const data = JSON.parse(msgObj.message);
+            updateUI(data);
+            if (isManual) showToast("อัปเดตข้อมูลล่าสุดสำเร็จ");
+          }
+        }
+      } catch (e) {
+        console.log("Status fetch error:", e);
+      } finally {
+        if (refreshIcon) {
+          setTimeout(() => refreshIcon.classList.remove('animate-spin'), 600);
+        }
+      }
+    }
+
+    function updateUI(data) {
+      // 1. Connection status
+      const connText = document.getElementById('conn-text');
+      const connPing = document.getElementById('conn-ping');
+      const statusBadge = document.getElementById('status-badge');
+
+      if (data.status === "ONLINE") {
+        connText.innerText = "เชื่อมต่อกับ PC สำเร็จ";
+        connText.className = "text-xs text-brand-400 font-medium";
+        connPing.classList.remove('hidden');
+        statusBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span> ออนไลน์ พร้อมรับคำสั่ง`;
+        statusBadge.className = "px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/15 text-emerald-400 border border-emerald-500/30 flex items-center gap-1.5";
+      }
+
+      // 2. Attendance Status
+      const stateText = document.getElementById('card-attendance-state');
+      const badgeText = document.getElementById('card-attendance-badge');
+      const iconBox = document.getElementById('attendance-icon-box');
+
+      if (data.attendance_status) {
+        stateText.innerText = data.attendance_status;
+        if (data.attendance_status.includes("ออกงานแล้ว")) {
+          stateText.className = "text-sm font-extrabold text-amber-400";
+          badgeText.className = "text-[10px] px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 font-semibold border border-amber-500/30";
+          badgeText.innerText = "ออกงานแล้ว";
+          iconBox.className = "w-10 h-10 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-lg border border-amber-500/30";
+          iconBox.innerHTML = '<i class="fa-solid fa-door-open"></i>';
+        } else if (data.attendance_status.includes("เข้างานแล้ว")) {
+          stateText.className = "text-sm font-extrabold text-emerald-400";
+          badgeText.className = "text-[10px] px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30";
+          badgeText.innerText = "เข้างานแล้ว";
+          iconBox.className = "w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg border border-emerald-500/30";
+          iconBox.innerHTML = '<i class="fa-solid fa-circle-check"></i>';
+        }
+      }
+
+      // 3. Schedule Window & Times
+      const timeStart = data.time_start || data.schedule_time || "07:00";
+      const timeEnd = data.time_end || "08:30";
+      
+      document.getElementById('card-schedule-window').innerText = `${timeStart} - ${timeEnd}`;
+      document.getElementById('card-time-start').innerText = timeStart;
+      document.getElementById('input-time-start').value = timeStart;
+      document.getElementById('input-time-end').value = timeEnd;
+
+      // 4. Auto Switch & Task State
+      if (data.is_auto_enabled !== undefined) {
+        document.getElementById('auto-toggle').checked = data.is_auto_enabled;
+        const autoText = document.getElementById('card-auto-status');
+        autoText.innerText = data.is_auto_enabled ? "เปิดใช้งาน" : "ปิดใช้งาน";
+        autoText.className = data.is_auto_enabled ? "text-lg font-extrabold text-emerald-400 tracking-tight" : "text-lg font-extrabold text-slate-500 tracking-tight";
+      }
+
+      if (data.task_state) {
+        document.getElementById('card-task-state').innerText = data.task_state;
+      }
+
+      // 5. Last Log
+      if (data.last_log) {
+        document.getElementById('last-log-text').innerText = data.last_log;
+      }
+
+      if (data.updated_at) {
+        const timePart = data.updated_at.split(' ')[1] || data.updated_at;
+        document.getElementById('last-updated-time').innerText = timePart;
+      }
+
+      if (data.notice) {
+        showToast(data.notice, data.notice_type || "info");
+      }
+    }
+
+    // 8. Real-Time Push Events via Server-Sent Events (SSE)
+    function initEventSource() {
+      try {
+        const evtSource = new EventSource(`https://ntfy.sh/${STATUS_TOPIC}/sse`);
+        evtSource.onmessage = function(event) {
+          try {
+            const msgObj = JSON.parse(event.data);
+            if (msgObj.message) {
+              const data = JSON.parse(msgObj.message);
+              updateUI(data);
+            }
+          } catch(e) {}
+        };
+      } catch(e) {}
+    }
+
+    // Initialize
+    fetchStatus();
+    initEventSource();
+    setInterval(() => fetchStatus(false), 20000);
+  </script>
+</body>
+</html>
