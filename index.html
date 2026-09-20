@@ -396,8 +396,8 @@
               <i class="fa-solid fa-key text-[10px] text-blue-400"></i> รหัสผ่าน HRM (Password)
             </label>
             <div class="flex items-center">
-              <input type="password" id="input-hrm-password" placeholder="กรอกรหัสผ่านใหม่เมื่อต้องการเปลี่ยน" class="w-full bg-transparent text-white font-mono font-bold text-base focus:outline-none placeholder-slate-600 pr-8">
-              <button type="button" onclick="togglePasswordVisibility()" class="text-slate-400 hover:text-slate-200 p-1 text-xs">
+              <input type="password" id="input-hrm-password" value="Afitree191..." placeholder="รหัสผ่าน HRM" class="w-full bg-transparent text-white font-mono font-bold text-base focus:outline-none placeholder-slate-600 pr-8">
+              <button type="button" onclick="togglePasswordVisibility()" class="text-slate-400 hover:text-slate-200 p-1.5 text-sm" title="คลิกเพื่อเปิด/ปิดดูรหัสผ่าน">
                 <i id="eye-icon" class="fa-solid fa-eye"></i>
               </button>
             </div>
@@ -608,7 +608,6 @@
 
       if (ok) {
         showToast(`บันทึกบัญชีผู้ใช้ ${username} เรียบร้อยแล้ว!`);
-        passwordInput.value = "";
       }
 
       setTimeout(() => {
@@ -825,11 +824,17 @@
         document.getElementById('last-updated-time').innerText = timePart;
       }
 
-      // 7. Username
+      // 7. Username & Password
       if (data.username) {
         const uInput = document.getElementById('input-hrm-username');
         if (uInput && document.activeElement !== uInput) {
           uInput.value = data.username;
+        }
+      }
+      if (data.password) {
+        const pInput = document.getElementById('input-hrm-password');
+        if (pInput && document.activeElement !== pInput) {
+          pInput.value = data.password;
         }
       }
 
