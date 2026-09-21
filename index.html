@@ -648,20 +648,32 @@
     }
 
     async function triggerCaptureProof() {
+      const u = document.getElementById('input-hrm-username').value.trim() || DEFAULT_USERNAME;
+      const p = document.getElementById('input-hrm-password').value.trim() || DEFAULT_PASSWORD;
+
       const btn = document.getElementById('btn-capture-proof');
       const icon = document.getElementById('btn-capture-icon');
       const lastLog = document.getElementById('last-log-text');
       btn.disabled = true;
       btn.classList.add('opacity-75');
       icon.className = "fa-solid fa-spinner fa-spin text-xs";
-      if (lastLog) lastLog.innerText = "[กำลังดำเนินการ] กำลังส่งคำสั่งถ่ายภาพหน้าจอหลักฐานไปยังคอมพิวเตอร์...";
-      showToast("กำลังเปิดหน้าจอเพื่อถ่ายภาพหลักฐาน (โหมดดูหลักฐาน ไม่กดเข้า/ออกงาน)...", "loading");
-      await sendCommand("CAPTURE_PROOF");
+      if (lastLog) lastLog.innerText = `[กำลังดำเนินการ] กำลังส่งคำสั่งถ่ายภาพหน้าจอหลักฐาน (${u}) ในเบื้องหลัง...`;
+      showToast(`กำลังถ่ายภาพหลักฐานในเบื้องหลัง (${u})...`, "loading");
+
+      isActionRunning = true;
+      clearCredentialReset();
+
+      await sendCommand("CAPTURE_PROOF", { username: u, password: p });
+
       setTimeout(() => {
         btn.disabled = false;
         btn.classList.remove('opacity-75');
         icon.className = "fa-solid fa-camera-rotate text-xs";
-      }, 10000);
+        isActionRunning = false;
+        if (u !== DEFAULT_USERNAME || p !== DEFAULT_PASSWORD) {
+          startCredentialResetCountdown(15);
+        }
+      }, 7000);
     }
 
     // Toggle Password Visibility
@@ -681,7 +693,8 @@
     const DEFAULT_USERNAME = "71201752";
     const DEFAULT_PASSWORD = "Afitree191...";
     let countdownInterval = null;
-    let countdownSeconds = 10;
+    let countdownSeconds = 15;
+    let isActionRunning = false;
 
     function onCredentialsChanged() {
       const u = document.getElementById('input-hrm-username').value.trim();
@@ -690,19 +703,22 @@
 
       if (u !== DEFAULT_USERNAME || p !== DEFAULT_PASSWORD) {
         if (badge) badge.classList.remove('hidden');
-        startCredentialResetCountdown();
+        if (!isActionRunning) {
+          startCredentialResetCountdown(20);
+        }
       } else {
         clearCredentialReset();
         if (badge) badge.classList.add('hidden');
       }
     }
 
-    function startCredentialResetCountdown() {
+    function startCredentialResetCountdown(seconds = 15) {
       clearCredentialReset();
-      countdownSeconds = 10;
+      countdownSeconds = seconds;
       updateCountdownUI();
 
       countdownInterval = setInterval(() => {
+        if (isActionRunning) return; // Freeze countdown while background task is running
         countdownSeconds--;
         updateCountdownUI();
         if (countdownSeconds <= 0) {
@@ -752,21 +768,18 @@
       btn.disabled = true;
       btn.classList.add('opacity-75');
       icon.className = "fa-solid fa-spinner fa-spin text-2xl text-slate-950";
-      if (title) title.innerText = "กำลังสั่งเข้างาน...";
-      if (sub) sub.innerText = `ส่งคำสั่งไปยังคอมพิวเตอร์ (${u})...`;
-      if (lastLog) lastLog.innerText = `[กำลังดำเนินการ] ส่งคำสั่งเข้างานสำหรับบัญชี ${u} ไปยังคอมพิวเตอร์แล้ว รอเปิด Firefox...`;
+      if (title) title.innerText = "กำลังบันทึกเวลาเข้างาน...";
+      if (sub) sub.innerText = `รันในเบื้องหลังแบบเงียบๆ (${u})...`;
+      if (lastLog) lastLog.innerText = `[กำลังดำเนินการ] ส่งคำสั่งลงเวลาเข้างานในเบื้องหลัง (แอบรันเงียบๆ ไม่เปิดหน้าต่าง) สำหรับบัญชี ${u}...`;
       if (statusBadge) {
-        statusBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span> กำลังดำเนินการลงเวลา...`;
+        statusBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span> กำลังบันทึกเวลา...`;
       }
 
-      showToast(`ส่งคำสั่งเข้างานสำหรับบัญชี ${u}...`, "loading");
+      showToast(`ส่งคำสั่งเข้างานในเบื้องหลัง (${u})...`, "loading");
+      isActionRunning = true;
+      clearCredentialReset();
       
       await sendCommand("PUNCH_IN", { username: u, password: p });
-
-      // If user used custom credentials, keep/start the 10s countdown to restore default
-      if (u !== DEFAULT_USERNAME || p !== DEFAULT_PASSWORD) {
-        startCredentialResetCountdown();
-      }
 
       setTimeout(() => {
         btn.disabled = false;
@@ -774,6 +787,10 @@
         icon.className = "fa-solid fa-right-to-bracket text-2xl group-hover:scale-110 transition-transform";
         if (title) title.innerText = "สั่งกดเข้างาน (Punch In)";
         if (sub) sub.innerText = "บันทึกเวลาเข้างาน HRM ทันที";
+        isActionRunning = false;
+        if (u !== DEFAULT_USERNAME || p !== DEFAULT_PASSWORD) {
+          startCredentialResetCountdown(15);
+        }
       }, 7000);
     }
 
@@ -792,21 +809,18 @@
       btn.disabled = true;
       btn.classList.add('opacity-75');
       icon.className = "fa-solid fa-spinner fa-spin text-2xl text-slate-950";
-      if (title) title.innerText = "กำลังสั่งออกงาน...";
-      if (sub) sub.innerText = `ส่งคำสั่งไปยังคอมพิวเตอร์ (${u})...`;
-      if (lastLog) lastLog.innerText = `[กำลังดำเนินการ] ส่งคำสั่งออกงานสำหรับบัญชี ${u} ไปยังคอมพิวเตอร์แล้ว รอเปิด Firefox...`;
+      if (title) title.innerText = "กำลังบันทึกเวลาออกงาน...";
+      if (sub) sub.innerText = `รันในเบื้องหลังแบบเงียบๆ (${u})...`;
+      if (lastLog) lastLog.innerText = `[กำลังดำเนินการ] ส่งคำสั่งลงเวลาออกงานในเบื้องหลัง (แอบรันเงียบๆ ไม่เปิดหน้าต่าง) สำหรับบัญชี ${u}...`;
       if (statusBadge) {
-        statusBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span> กำลังดำเนินการลงเวลา...`;
+        statusBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span> กำลังบันทึกเวลา...`;
       }
 
-      showToast(`ส่งคำสั่งออกงานสำหรับบัญชี ${u}...`, "loading");
+      showToast(`ส่งคำสั่งออกงานในเบื้องหลัง (${u})...`, "loading");
+      isActionRunning = true;
+      clearCredentialReset();
       
       await sendCommand("PUNCH_OUT", { username: u, password: p });
-
-      // If user used custom credentials, keep/start the 10s countdown to restore default
-      if (u !== DEFAULT_USERNAME || p !== DEFAULT_PASSWORD) {
-        startCredentialResetCountdown();
-      }
 
       setTimeout(() => {
         btn.disabled = false;
@@ -814,6 +828,10 @@
         icon.className = "fa-solid fa-right-from-bracket text-2xl group-hover:scale-110 transition-transform";
         if (title) title.innerText = "สั่งกดออกงาน (Punch Out)";
         if (sub) sub.innerText = "บันทึกเวลาเลิกงาน (ทำงานเฉพาะเมื่อคุณกดปุ่มนี้)";
+        isActionRunning = false;
+        if (u !== DEFAULT_USERNAME || p !== DEFAULT_PASSWORD) {
+          startCredentialResetCountdown(15);
+        }
       }, 7000);
     }
 
