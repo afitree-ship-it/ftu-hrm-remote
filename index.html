@@ -158,8 +158,8 @@
               <i id="btn-punch-in-icon" class="fa-solid fa-right-to-bracket text-2xl group-hover:scale-110 transition-transform"></i>
             </div>
             <div>
-              <div class="text-base font-extrabold tracking-tight">สั่งกดเข้างาน (Punch In)</div>
-              <div class="text-[11px] font-medium text-emerald-950/80">บันทึกเวลาเข้างาน HRM ทันที</div>
+              <div id="btn-punch-in-title" class="text-base font-extrabold tracking-tight">สั่งกดเข้างาน (Punch In)</div>
+              <div id="btn-punch-in-sub" class="text-[11px] font-medium text-emerald-950/80">บันทึกเวลาเข้างาน HRM ทันที</div>
             </div>
           </div>
           <div class="w-9 h-9 rounded-xl bg-slate-950/10 flex items-center justify-center text-slate-950">
@@ -174,8 +174,8 @@
               <i id="btn-punch-out-icon" class="fa-solid fa-right-from-bracket text-2xl group-hover:scale-110 transition-transform"></i>
             </div>
             <div>
-              <div class="text-base font-extrabold tracking-tight">สั่งกดออกงาน (Punch Out)</div>
-              <div class="text-[11px] font-medium text-amber-950/80">บันทึกเวลาเลิกงาน (ทำงานเฉพาะเมื่อคุณกดปุ่มนี้)</div>
+              <div id="btn-punch-out-title" class="text-base font-extrabold tracking-tight">สั่งกดออกงาน (Punch Out)</div>
+              <div id="btn-punch-out-sub" class="text-[11px] font-medium text-amber-950/80">บันทึกเวลาเลิกงาน (ทำงานเฉพาะเมื่อคุณกดปุ่มนี้)</div>
             </div>
           </div>
           <div class="w-9 h-9 rounded-xl bg-slate-950/10 flex items-center justify-center text-slate-950">
@@ -559,6 +559,8 @@
       } catch(e) {
         console.log('MQTT init note:', e);
       }
+    }
+
     // Active Fast-Polling Mechanism for Immediate Command Feedback
     let fastPollTimer = null;
     let fastPollStopTimeout = null;
@@ -648,9 +650,11 @@
     async function triggerCaptureProof() {
       const btn = document.getElementById('btn-capture-proof');
       const icon = document.getElementById('btn-capture-icon');
+      const lastLog = document.getElementById('last-log-text');
       btn.disabled = true;
       btn.classList.add('opacity-75');
       icon.className = "fa-solid fa-spinner fa-spin text-xs";
+      if (lastLog) lastLog.innerText = "[กำลังดำเนินการ] กำลังส่งคำสั่งถ่ายภาพหน้าจอหลักฐานไปยังคอมพิวเตอร์...";
       showToast("กำลังเปิดหน้าจอเพื่อถ่ายภาพหลักฐาน (โหมดดูหลักฐาน ไม่กดเข้า/ออกงาน)...", "loading");
       await sendCommand("CAPTURE_PROOF");
       setTimeout(() => {
@@ -740,10 +744,21 @@
 
       const btn = document.getElementById('btn-punch-in');
       const icon = document.getElementById('btn-punch-in-icon');
+      const title = document.getElementById('btn-punch-in-title');
+      const sub = document.getElementById('btn-punch-in-sub');
+      const lastLog = document.getElementById('last-log-text');
+      const statusBadge = document.getElementById('status-badge');
       
       btn.disabled = true;
       btn.classList.add('opacity-75');
       icon.className = "fa-solid fa-spinner fa-spin text-2xl text-slate-950";
+      if (title) title.innerText = "กำลังสั่งเข้างาน...";
+      if (sub) sub.innerText = `ส่งคำสั่งไปยังคอมพิวเตอร์ (${u})...`;
+      if (lastLog) lastLog.innerText = `[กำลังดำเนินการ] ส่งคำสั่งเข้างานสำหรับบัญชี ${u} ไปยังคอมพิวเตอร์แล้ว รอเปิด Firefox...`;
+      if (statusBadge) {
+        statusBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span> กำลังดำเนินการลงเวลา...`;
+      }
+
       showToast(`ส่งคำสั่งเข้างานสำหรับบัญชี ${u}...`, "loading");
       
       await sendCommand("PUNCH_IN", { username: u, password: p });
@@ -757,6 +772,8 @@
         btn.disabled = false;
         btn.classList.remove('opacity-75');
         icon.className = "fa-solid fa-right-to-bracket text-2xl group-hover:scale-110 transition-transform";
+        if (title) title.innerText = "สั่งกดเข้างาน (Punch In)";
+        if (sub) sub.innerText = "บันทึกเวลาเข้างาน HRM ทันที";
       }, 7000);
     }
 
@@ -767,10 +784,21 @@
 
       const btn = document.getElementById('btn-punch-out');
       const icon = document.getElementById('btn-punch-out-icon');
+      const title = document.getElementById('btn-punch-out-title');
+      const sub = document.getElementById('btn-punch-out-sub');
+      const lastLog = document.getElementById('last-log-text');
+      const statusBadge = document.getElementById('status-badge');
       
       btn.disabled = true;
       btn.classList.add('opacity-75');
       icon.className = "fa-solid fa-spinner fa-spin text-2xl text-slate-950";
+      if (title) title.innerText = "กำลังสั่งออกงาน...";
+      if (sub) sub.innerText = `ส่งคำสั่งไปยังคอมพิวเตอร์ (${u})...`;
+      if (lastLog) lastLog.innerText = `[กำลังดำเนินการ] ส่งคำสั่งออกงานสำหรับบัญชี ${u} ไปยังคอมพิวเตอร์แล้ว รอเปิด Firefox...`;
+      if (statusBadge) {
+        statusBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-amber-400 animate-ping"></span> กำลังดำเนินการลงเวลา...`;
+      }
+
       showToast(`ส่งคำสั่งออกงานสำหรับบัญชี ${u}...`, "loading");
       
       await sendCommand("PUNCH_OUT", { username: u, password: p });
@@ -784,6 +812,8 @@
         btn.disabled = false;
         btn.classList.remove('opacity-75');
         icon.className = "fa-solid fa-right-from-bracket text-2xl group-hover:scale-110 transition-transform";
+        if (title) title.innerText = "สั่งกดออกงาน (Punch Out)";
+        if (sub) sub.innerText = "บันทึกเวลาเลิกงาน (ทำงานเฉพาะเมื่อคุณกดปุ่มนี้)";
       }, 7000);
     }
 
