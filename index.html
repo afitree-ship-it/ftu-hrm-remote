@@ -103,96 +103,96 @@
   <div class="relative z-10 max-w-md mx-auto flex flex-col min-h-screen">
 
     <!-- Top App Bar -->
-    <header class="sticky top-0 z-30 glass-panel px-5 py-4 border-b border-slate-800/80 flex items-center justify-between shadow-lg shadow-black/20">
-      <div class="flex items-center space-x-3.5">
+    <header class="sticky top-0 z-30 glass-panel px-4 py-3 border-b border-slate-800/80 flex items-center justify-between shadow-lg shadow-black/20">
+      <div class="flex items-center space-x-3">
         <div class="relative">
-          <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-brand-600 via-emerald-500 to-teal-400 flex items-center justify-center text-slate-950 shadow-lg shadow-emerald-500/25">
-            <i class="fa-solid fa-fingerprint text-2xl"></i>
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 via-emerald-500 to-teal-400 flex items-center justify-center text-slate-950 shadow-md shadow-emerald-500/20">
+            <i class="fa-solid fa-fingerprint text-xl"></i>
           </div>
-          <span id="conn-ping" class="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5">
+          <span id="conn-ping" class="absolute -bottom-0.5 -right-0.5 flex h-3 w-3">
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 border-2 border-slate-950"></span>
+            <span class="relative inline-flex rounded-full h-3 w-3 bg-emerald-500 border-2 border-slate-950"></span>
           </span>
         </div>
         <div>
-          <h1 class="text-base font-bold tracking-tight text-white flex items-center gap-1.5">
+          <h1 class="text-sm font-bold tracking-tight text-white flex items-center gap-1.5">
             FTU HRM Remote
-            <span class="text-[10px] px-1.5 py-0.5 rounded bg-brand-500/20 text-brand-400 font-mono font-medium">v2.1</span>
+            <span class="text-[9px] px-1.5 py-0.5 rounded bg-brand-500/20 text-brand-400 font-mono font-medium">v2.2</span>
           </h1>
-          <p id="conn-text" class="text-xs text-brand-400 font-medium">เชื่อมต่อกับ PC สำเร็จ</p>
+          <p id="conn-text" class="text-[11px] text-brand-400 font-medium">เชื่อมต่อกับ PC สำเร็จ</p>
         </div>
       </div>
 
       <div class="flex items-center space-x-2">
-        <button onclick="fetchStatus(true)" title="รีเฟรชสถานะ" class="w-10 h-10 rounded-xl bg-slate-800/90 hover:bg-slate-700 active:scale-95 flex items-center justify-center text-slate-300 border border-slate-700/60 shadow-sm transition">
-          <i id="refresh-icon" class="fa-solid fa-arrows-rotate text-sm"></i>
+        <button onclick="fetchStatus(true)" title="รีเฟรชสถานะ" class="w-9 h-9 rounded-xl bg-slate-800/90 hover:bg-slate-700 active:scale-95 flex items-center justify-center text-slate-300 border border-slate-700/60 shadow-sm transition">
+          <i id="refresh-icon" class="fa-solid fa-arrows-rotate text-xs"></i>
         </button>
       </div>
     </header>
 
     <!-- App Body Content -->
-    <main class="flex-1 px-4 pt-5 space-y-4">
+    <main class="flex-1 px-3.5 pt-3.5 space-y-3">
 
       <!-- Live Attendance Status Banner -->
-      <div id="attendance-banner" class="rounded-3xl p-4 shadow-xl border border-emerald-500/30 bg-gradient-to-r from-emerald-950/70 via-slate-900/90 to-teal-950/70 flex items-center justify-between">
+      <div id="attendance-banner" class="rounded-2xl p-3.5 shadow-xl border border-emerald-500/30 bg-gradient-to-r from-emerald-950/70 via-slate-900/90 to-teal-950/70 flex items-center justify-between">
         <div class="flex items-center space-x-3">
-          <div id="attendance-icon-box" class="w-10 h-10 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-lg border border-emerald-500/30">
+          <div id="attendance-icon-box" class="w-9 h-9 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-base border border-emerald-500/30">
             <i class="fa-solid fa-circle-check"></i>
           </div>
           <div>
-            <p class="text-[11px] text-slate-400 font-medium">สถานะการลงเวลา HRM วันนี้</p>
-            <p id="card-attendance-state" class="text-sm font-extrabold text-emerald-400">เข้างานแล้ว (Punched In)</p>
+            <p class="text-[10px] text-slate-400 font-medium">สถานะการลงเวลา HRM วันนี้</p>
+            <p id="card-attendance-state" class="text-xs font-extrabold text-emerald-400">เข้างานแล้ว (Punched In)</p>
           </div>
         </div>
-        <span id="card-attendance-badge" class="text-[10px] px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30">
+        <span id="card-attendance-badge" class="text-[10px] px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-semibold border border-emerald-500/30">
           บันทึกแล้ว
         </span>
       </div>
 
       <!-- Hero Action Buttons: Dual Punch In & Punch Out (Top Priority) -->
-      <div class="space-y-3">
+      <div class="space-y-2.5">
         <!-- 1. Punch In Button -->
-        <button id="btn-punch-in" onclick="triggerManualPunchIn()" class="btn-glow w-full bg-gradient-to-r from-emerald-500 via-brand-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 active:scale-[0.98] text-slate-950 font-bold p-4 rounded-3xl shadow-xl shadow-brand-500/25 flex items-center justify-between transition-all duration-200 group">
-          <div class="flex items-center space-x-3.5 text-left">
-            <div class="w-12 h-12 rounded-2xl bg-slate-950/15 flex items-center justify-center text-slate-950">
-              <i id="btn-punch-in-icon" class="fa-solid fa-right-to-bracket text-2xl group-hover:scale-110 transition-transform"></i>
+        <button id="btn-punch-in" onclick="triggerManualPunchIn()" class="btn-glow w-full bg-gradient-to-r from-emerald-500 via-brand-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 active:scale-[0.98] text-slate-950 font-bold p-3.5 rounded-2xl shadow-lg shadow-brand-500/20 flex items-center justify-between transition-all duration-200 group">
+          <div class="flex items-center space-x-3 text-left">
+            <div class="w-10 h-10 rounded-xl bg-slate-950/15 flex items-center justify-center text-slate-950">
+              <i id="btn-punch-in-icon" class="fa-solid fa-right-to-bracket text-xl group-hover:scale-110 transition-transform"></i>
             </div>
             <div>
-              <div id="btn-punch-in-title" class="text-base font-extrabold tracking-tight">สั่งกดเข้างาน (Punch In)</div>
-              <div id="btn-punch-in-sub" class="text-[11px] font-medium text-emerald-950/80">บันทึกเวลาเข้างาน HRM ทันที</div>
+              <div id="btn-punch-in-title" class="text-sm font-extrabold tracking-tight">สั่งกดเข้างาน (Punch In)</div>
+              <div id="btn-punch-in-sub" class="text-[10px] font-medium text-emerald-950/80">บันทึกเวลาเข้างาน HRM ทันที (รันเงียบในเบื้องหลัง)</div>
             </div>
           </div>
-          <div class="w-9 h-9 rounded-xl bg-slate-950/10 flex items-center justify-center text-slate-950">
+          <div class="w-8 h-8 rounded-lg bg-slate-950/10 flex items-center justify-center text-slate-950">
             <i class="fa-solid fa-chevron-right text-xs"></i>
           </div>
         </button>
 
         <!-- 2. Punch Out Button (Manual Only) -->
-        <button id="btn-punch-out" onclick="triggerManualPunchOut()" class="btn-glow w-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 active:scale-[0.98] text-slate-950 font-bold p-4 rounded-3xl shadow-xl shadow-orange-500/20 flex items-center justify-between transition-all duration-200 group">
-          <div class="flex items-center space-x-3.5 text-left">
-            <div class="w-12 h-12 rounded-2xl bg-slate-950/15 flex items-center justify-center text-slate-950">
-              <i id="btn-punch-out-icon" class="fa-solid fa-right-from-bracket text-2xl group-hover:scale-110 transition-transform"></i>
+        <button id="btn-punch-out" onclick="triggerManualPunchOut()" class="btn-glow w-full bg-gradient-to-r from-amber-500 via-orange-500 to-amber-600 hover:from-amber-400 hover:to-orange-400 active:scale-[0.98] text-slate-950 font-bold p-3.5 rounded-2xl shadow-lg shadow-orange-500/20 flex items-center justify-between transition-all duration-200 group">
+          <div class="flex items-center space-x-3 text-left">
+            <div class="w-10 h-10 rounded-xl bg-slate-950/15 flex items-center justify-center text-slate-950">
+              <i id="btn-punch-out-icon" class="fa-solid fa-right-from-bracket text-xl group-hover:scale-110 transition-transform"></i>
             </div>
             <div>
-              <div id="btn-punch-out-title" class="text-base font-extrabold tracking-tight">สั่งกดออกงาน (Punch Out)</div>
-              <div id="btn-punch-out-sub" class="text-[11px] font-medium text-amber-950/80">บันทึกเวลาเลิกงาน (ทำงานเฉพาะเมื่อคุณกดปุ่มนี้)</div>
+              <div id="btn-punch-out-title" class="text-sm font-extrabold tracking-tight">สั่งกดออกงาน (Punch Out)</div>
+              <div id="btn-punch-out-sub" class="text-[10px] font-medium text-amber-950/80">บันทึกเวลาเลิกงาน (ทำงานเฉพาะเมื่อกดปุ่มนี้)</div>
             </div>
           </div>
-          <div class="w-9 h-9 rounded-xl bg-slate-950/10 flex items-center justify-center text-slate-950">
+          <div class="w-8 h-8 rounded-lg bg-slate-950/10 flex items-center justify-center text-slate-950">
             <i class="fa-solid fa-chevron-right text-xs"></i>
           </div>
         </button>
 
-        <div class="flex items-center justify-center gap-2 text-[11px] text-slate-400 font-medium text-center">
+        <div class="flex items-center justify-center gap-1.5 text-[10px] text-slate-400 font-medium text-center">
           <i class="fa-solid fa-lock text-brand-400"></i>
-          <span>ระบบออโต้รอบเช้าจะ <b>"เข้างานอย่างเดียว"</b> ส่วนการออกงานจะทำเมื่อคุณกดปุ่มส้มนี้เท่านั้น</span>
+          <span>ระบบออโต้รอบเช้าจะ <b>เข้างานอย่างเดียว</b> ส่วนการออกงานจะทำเมื่อคุณกดปุ่มส้มนี้เท่านั้น</span>
         </div>
       </div>
 
       <!-- Real-Time Screenshot Evidence Card -->
-      <div id="proof-container" class="glass-card rounded-3xl p-4 shadow-xl border border-slate-700/50 space-y-3">
+      <div id="proof-container" class="glass-card rounded-2xl p-3.5 shadow-xl border border-slate-700/50 space-y-2.5">
         <div class="flex items-center justify-between">
-          <div class="flex items-center space-x-2.5">
+          <div class="flex items-center space-x-2">
             <div class="w-8 h-8 rounded-xl bg-brand-500/20 text-brand-400 flex items-center justify-center text-sm border border-brand-500/30">
               <i class="fa-solid fa-camera"></i>
             </div>
@@ -218,6 +218,64 @@
             <i class="fa-solid fa-magnifying-glass-plus"></i> แตะเพื่อดูรูปเต็มจอ
           </div>
         </div>
+      </div>
+
+      <!-- Account Credentials Settings Card (Compact UI directly following Proof Card) -->
+      <div class="glass-card rounded-2xl p-4 shadow-xl space-y-2.5 border border-slate-700/40">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-2">
+            <div class="w-7 h-7 rounded-lg bg-blue-500/15 text-blue-400 flex items-center justify-center text-xs">
+              <i class="fa-solid fa-user-gear"></i>
+            </div>
+            <div>
+              <h2 class="text-xs font-bold text-white tracking-tight">บัญชีผู้ใช้ HRM (ลงเวลาเฉพาะกิจ)</h2>
+            </div>
+          </div>
+          <span class="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/15 text-blue-300 border border-blue-500/30 font-medium">
+            ใช้ได้ทันทีไม่ต้องบันทึก
+          </span>
+        </div>
+
+        <!-- Temporary Active Notification with Countdown -->
+        <div id="credential-temp-badge" class="hidden p-2 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[11px] flex items-center justify-between">
+          <div class="flex items-center gap-1.5 truncate">
+            <i class="fa-solid fa-clock-rotate-left text-amber-400 text-xs"></i>
+            <span>ใช้บัญชีชั่วคราว (คืนค่าหลักใน <b id="reset-countdown-sec" class="font-mono text-white text-xs">15</b> วิ)</span>
+          </div>
+          <button onclick="resetToDefaultCredentials()" class="shrink-0 px-2 py-0.5 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-[10px] font-bold text-amber-200 border border-amber-500/40 active:scale-95 transition">
+            คืนค่าทันที
+          </button>
+        </div>
+
+        <!-- Username & Password in 2-Column Compact Grid -->
+        <div class="grid grid-cols-2 gap-2">
+          <!-- Username Input -->
+          <div class="bg-slate-900/90 rounded-xl p-2.5 border border-slate-700/70 focus-within:border-blue-500 transition">
+            <label class="text-[10px] text-slate-400 font-medium flex items-center gap-1 mb-0.5">
+              <i class="fa-solid fa-id-card text-[9px] text-blue-400"></i> รหัสพนักงาน
+            </label>
+            <input type="text" id="input-hrm-username" value="71201752" oninput="onCredentialsChanged()" placeholder="71201752" class="w-full bg-transparent text-white font-mono font-bold text-sm focus:outline-none placeholder-slate-600">
+          </div>
+
+          <!-- Password Input -->
+          <div class="bg-slate-900/90 rounded-xl p-2.5 border border-slate-700/70 focus-within:border-blue-500 transition relative">
+            <label class="text-[10px] text-slate-400 font-medium flex items-center gap-1 mb-0.5">
+              <i class="fa-solid fa-key text-[9px] text-blue-400"></i> รหัสผ่าน
+            </label>
+            <div class="flex items-center">
+              <input type="password" id="input-hrm-password" value="Afitree191..." oninput="onCredentialsChanged()" placeholder="รหัสผ่าน" class="w-full bg-transparent text-white font-mono font-bold text-sm focus:outline-none placeholder-slate-600 pr-6">
+              <button type="button" onclick="togglePasswordVisibility()" class="text-slate-400 hover:text-slate-200 p-1 text-xs" title="เปิด/ปิดดูรหัสผ่าน">
+                <i id="eye-icon" class="fa-solid fa-eye"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Subtext explanation -->
+        <p class="text-[10px] text-slate-400 flex items-center gap-1.5 leading-tight">
+          <i class="fa-solid fa-bolt text-brand-400 text-[10px]"></i>
+          <span>กรอกแล้วกดเข้า/ออกงานได้ทันที ระบบจะใช้รหัสนี้แล้วคืนค่าหลักอัตโนมัติ</span>
+        </p>
       </div>
 
       <!-- Real-Time Status Overview Card -->
@@ -370,63 +428,6 @@
         </div>
       </div>
 
-      <!-- Account Credentials Settings Card -->
-      <div class="glass-card rounded-3xl p-5 shadow-2xl space-y-4 border border-slate-700/40">
-        <div class="flex items-center justify-between pb-3 border-b border-slate-800/80">
-          <div class="flex items-center space-x-2.5">
-            <div class="w-8 h-8 rounded-xl bg-blue-500/15 text-blue-400 flex items-center justify-center text-sm">
-              <i class="fa-solid fa-user-gear"></i>
-            </div>
-            <div>
-              <h2 class="text-sm font-bold text-white">บัญชีผู้ใช้ HRM (Username / Password)</h2>
-              <p class="text-[11px] text-slate-400">กรอกรหัสพนักงาน/รหัสผ่านเพื่อลงเวลาได้ทันที</p>
-            </div>
-          </div>
-          <span class="text-[10px] px-2.5 py-0.5 rounded-full bg-blue-500/15 text-blue-400 border border-blue-500/30 font-semibold">
-            ใช้ได้ทันที
-          </span>
-        </div>
-
-        <div class="space-y-3">
-          <!-- Temporary Active Notification with 10s Countdown -->
-          <div id="credential-temp-badge" class="hidden p-3 rounded-2xl bg-amber-500/15 border border-amber-500/30 text-amber-300 text-xs flex items-center justify-between animate-pulse">
-            <div class="flex items-center gap-2">
-              <i class="fa-solid fa-clock-rotate-left text-amber-400 text-sm"></i>
-              <span>กำลังใช้บัญชีอื่น (คืนค่าหลักใน <b id="reset-countdown-sec" class="font-mono text-white text-sm">10</b> วิ)</span>
-            </div>
-            <button onclick="resetToDefaultCredentials()" class="px-2.5 py-1 rounded-xl bg-amber-500/20 hover:bg-amber-500/30 text-[10px] font-bold text-amber-200 border border-amber-500/40 active:scale-95 transition">
-              คืนค่าทันที
-            </button>
-          </div>
-
-          <!-- Username Input -->
-          <div class="bg-slate-900/90 rounded-2xl p-3 border border-slate-700/70 focus-within:border-blue-500 transition">
-            <label class="text-[11px] text-slate-400 font-medium flex items-center gap-1.5 mb-1">
-              <i class="fa-solid fa-id-card text-[10px] text-blue-400"></i> รหัสพนักงาน (Username)
-            </label>
-            <input type="text" id="input-hrm-username" value="71201752" oninput="onCredentialsChanged()" placeholder="เช่น 71201752" class="w-full bg-transparent text-white font-mono font-bold text-base focus:outline-none placeholder-slate-600">
-          </div>
-
-          <!-- Password Input -->
-          <div class="bg-slate-900/90 rounded-2xl p-3 border border-slate-700/70 focus-within:border-blue-500 transition relative">
-            <label class="text-[11px] text-slate-400 font-medium flex items-center gap-1.5 mb-1">
-              <i class="fa-solid fa-key text-[10px] text-blue-400"></i> รหัสผ่าน HRM (Password)
-            </label>
-            <div class="flex items-center">
-              <input type="password" id="input-hrm-password" value="Afitree191..." oninput="onCredentialsChanged()" placeholder="รหัสผ่าน HRM" class="w-full bg-transparent text-white font-mono font-bold text-base focus:outline-none placeholder-slate-600 pr-8">
-              <button type="button" onclick="togglePasswordVisibility()" class="text-slate-400 hover:text-slate-200 p-1.5 text-sm" title="คลิกเพื่อเปิด/ปิดดูรหัสผ่าน">
-                <i id="eye-icon" class="fa-solid fa-eye"></i>
-              </button>
-            </div>
-          </div>
-
-          <!-- Subtext explanation -->
-          <div class="flex items-start gap-2 pt-1 text-[11px] text-slate-400 leading-relaxed">
-            <i class="fa-solid fa-bolt text-brand-400 mt-0.5"></i>
-            <span>ไม่ต้องกดบันทึก: ปรับเปลี่ยนรหัสแล้วกดปุ่มเข้างาน/ออกงานได้ทันที ระบบจะใช้รหัสนี้ และ<b>คืนค่ากลับเป็นบัญชีหลัก (71201752) อัตโนมัติใน 10 วินาที</b></span>
-          </div>
-        </div>
-      </div>
 
       <!-- Danger Zone / 1-Click Uninstaller -->
       <div class="glass-card rounded-3xl p-5 shadow-2xl space-y-3.5 border border-rose-950/50 relative overflow-hidden">
