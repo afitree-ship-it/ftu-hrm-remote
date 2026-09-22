@@ -553,20 +553,22 @@
       }, 4500);
     }
 
-    // Dual-Channel Real-Time Bridge: MQTT (Primary, 0ms, No Quotas) + ntfy.sh (Companion)
+    // Dual-Channel Real-Time Bridge: HiveMQ MQTT (Primary, 0ms, No Quotas) + ntfy.sh (Companion)
     let mqttClient = null;
 
     function initMQTT() {
       try {
-        mqttClient = mqtt.connect('wss://broker.emqx.io:8084/mqtt', {
+        mqttClient = mqtt.connect('wss://broker.hivemq.com:8884/mqtt', {
           clientId: 'ftu_web_' + Math.random().toString(16).substring(2, 10),
           clean: true,
-          reconnectPeriod: 3000,
-          connectTimeout: 6000
+          reconnectPeriod: 2500,
+          connectTimeout: 5000
         });
         mqttClient.on('connect', () => {
-          console.log('Connected to MQTT WebSocket Relay (EMQX)!');
+          console.log('Connected to HiveMQ WebSocket Relay!');
           mqttClient.subscribe(STATUS_TOPIC);
+          // Request instant status upon connect
+          mqttClient.publish(CMD_TOPIC, JSON.stringify({ action: "GET_STATUS" }), { qos: 1 });
         });
         mqttClient.on('message', (topic, payload) => {
           try {
@@ -946,20 +948,31 @@
       const refreshIcon = document.getElementById('refresh-icon');
       if (refreshIcon) refreshIcon.classList.add('animate-spin');
 
+      // 1. Request instant fresh status via MQTT
+      if (mqttClient && mqttClient.connected) {
+        try {
+          mqttClient.publish(CMD_TOPIC, JSON.stringify({ action: "GET_STATUS" }), { qos: 1 });
+        } catch(e) {}
+      }
+
+      // 2. Fetch from ntfy fallback, but ignore stale cached data (> 150s old)
       try {
         const resp = await fetch(`https://ntfy.sh/${STATUS_TOPIC}/json?poll=1`);
-        const text = await resp.text();
-        const lines = text.trim().split('\n');
-        if (lines.length > 0 && lines[lines.length - 1]) {
-          const msgObj = JSON.parse(lines[lines.length - 1]);
-          if (msgObj.message) {
-            const data = JSON.parse(msgObj.message);
-            updateUI(data);
-            if (isManual) showToast("อัปเดตข้อมูลล่าสุดสำเร็จ");
+        if (resp.ok) {
+          const text = await resp.text();
+          const lines = text.trim().split('\n');
+          if (lines.length > 0 && lines[lines.length - 1]) {
+            const msgObj = JSON.parse(lines[lines.length - 1]);
+            if (msgObj.message) {
+              const data = JSON.parse(msgObj.message);
+              if (!isTimestampStale(data.updated_at, 180)) {
+                updateUI(data);
+                if (isManual) showToast("อัปเดตข้อมูลล่าสุดสำเร็จ");
+              }
+            }
           }
         }
       } catch (e) {
-        console.log("Status fetch error:", e);
       } finally {
         if (refreshIcon) {
           setTimeout(() => refreshIcon.classList.remove('animate-spin'), 600);
