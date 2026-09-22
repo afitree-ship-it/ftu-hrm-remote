@@ -291,6 +291,23 @@
           </span>
         </div>
 
+        <!-- Remote Lock PC Action Bar -->
+        <div class="flex items-center justify-between p-3 rounded-2xl bg-slate-900/90 border border-slate-800/80 shadow-sm">
+          <div class="flex items-center space-x-2.5">
+            <div class="w-8 h-8 rounded-xl bg-purple-500/15 text-purple-400 flex items-center justify-center text-sm border border-purple-500/30">
+              <i class="fa-solid fa-lock"></i>
+            </div>
+            <div>
+              <div class="text-xs font-bold text-slate-200">ล็อคหน้าจอคอมพิวเตอร์</div>
+              <div class="text-[10px] text-slate-400">สั่งล็อคจากระยะไกล (เบื้องหลังยังรันปกติ)</div>
+            </div>
+          </div>
+          <button id="btn-lock-pc" onclick="triggerLockPC()" title="สั่งล็อคหน้าจอคอมพิวเตอร์ทันที" class="px-3 py-1.5 rounded-xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 active:scale-95 text-white text-xs font-bold shadow-md shadow-purple-900/30 flex items-center gap-1.5 transition">
+            <i class="fa-solid fa-lock text-[11px]"></i>
+            <span>สั่งล็อค PC</span>
+          </button>
+        </div>
+
         <!-- Schedule Grid -->
         <div class="grid grid-cols-2 gap-3 pt-1">
           <!-- Time Window Card -->
@@ -646,6 +663,26 @@
       const modal = document.getElementById('modal-image-zoom');
       modal.classList.add('hidden');
       modal.classList.remove('flex');
+    }
+
+    async function triggerLockPC() {
+      if (!confirm("คุณต้องการสั่งล็อคหน้าจอคอมพิวเตอร์ (Lock PC) เดี๋ยวนี้ใช่หรือไม่?")) {
+        return;
+      }
+      const btn = document.getElementById('btn-lock-pc');
+      const icon = btn ? btn.querySelector('i') : null;
+      if (btn) btn.disabled = true;
+      if (icon) icon.className = "fa-solid fa-spinner fa-spin text-[11px]";
+
+      showToast("กำลังสั่งล็อคหน้าจอคอมพิวเตอร์...", "loading");
+      const ok = await sendCommand("LOCK_PC");
+      if (ok) {
+        showToast("ส่งคำสั่งล็อคหน้าจอ PC เรียบร้อยแล้ว", "success");
+      }
+      setTimeout(() => {
+        if (btn) btn.disabled = false;
+        if (icon) icon.className = "fa-solid fa-lock text-[11px]";
+      }, 3500);
     }
 
     async function triggerCaptureProof() {
