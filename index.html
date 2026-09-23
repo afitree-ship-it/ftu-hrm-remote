@@ -198,7 +198,12 @@
             </div>
             <div>
               <h2 class="text-xs font-bold text-white tracking-tight">ภาพถ่ายหลักฐานหน้าจอจริง (PC Proof)</h2>
-              <p id="proof-timestamp" class="text-[10px] text-slate-400">อัปเดตเมื่อ: รอภาพหลักฐาน...</p>
+              <div class="flex items-center gap-1.5 mt-0.5">
+                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-emerald-500/15 text-emerald-300 font-medium text-[10px] border border-emerald-500/25">
+                  <i class="fa-regular fa-calendar-check text-[9px] text-emerald-400"></i>
+                  <span id="proof-timestamp">รอภาพหลักฐาน...</span>
+                </span>
+              </div>
             </div>
           </div>
           <button onclick="triggerCaptureProof()" id="btn-capture-proof" title="ถ่ายภาพหน้าจอหลักฐานเท่านั้น (ไม่กดเข้างานและไม่กดออกงาน)" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 active:scale-95 text-[11px] font-semibold text-slate-300 border border-slate-700/80 flex items-center gap-1.5 transition shadow-sm">
@@ -214,6 +219,13 @@
             <i class="fa-solid fa-image text-3xl opacity-40"></i>
             <span class="text-xs font-medium">กดปุ่มเข้างาน/ออกงานเพื่อดูภาพหลักฐานจริง</span>
           </div>
+
+          <!-- Bottom Date/Time Badge Overlay on the Photo -->
+          <div id="proof-badge-overlay" class="absolute bottom-2.5 left-2.5 px-2.5 py-1 rounded-lg bg-slate-950/85 backdrop-blur-md border border-slate-700/80 text-[10px] text-emerald-300 font-medium flex items-center gap-1.5 shadow-xl hidden">
+            <i class="fa-regular fa-clock text-emerald-400 text-[10px]"></i>
+            <span id="proof-overlay-time">--</span>
+          </div>
+
           <div id="proof-overlay" class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 text-white text-xs font-medium backdrop-blur-xs hidden">
             <i class="fa-solid fa-magnifying-glass-plus"></i> แตะเพื่อดูรูปเต็มจอ
           </div>
@@ -505,8 +517,12 @@
     <button class="absolute top-5 right-5 w-11 h-11 rounded-full bg-slate-800/80 hover:bg-slate-700 text-white flex items-center justify-center text-lg transition">
       <i class="fa-solid fa-xmark"></i>
     </button>
-    <img id="modal-zoom-img" src="" class="max-w-full max-h-[85vh] rounded-2xl shadow-2xl border border-slate-700 object-contain" onclick="event.stopPropagation()">
-    <p class="text-xs text-slate-400 mt-3 font-medium">แตะที่ว่างเพื่อปิดรูป</p>
+    <img id="modal-zoom-img" src="" class="max-w-full max-h-[80vh] rounded-2xl shadow-2xl border border-slate-700 object-contain" onclick="event.stopPropagation()">
+    <div class="mt-3 px-3.5 py-1.5 rounded-xl bg-slate-900/90 border border-slate-700/80 text-xs text-slate-200 flex items-center gap-2 shadow-xl" onclick="event.stopPropagation()">
+      <i class="fa-regular fa-calendar-check text-brand-400"></i>
+      <span id="modal-zoom-time" class="font-medium text-emerald-300">หลักฐานวันที่ --</span>
+    </div>
+    <p class="text-[11px] text-slate-500 mt-2 font-medium">แตะที่ว่างเพื่อปิดรูป</p>
   </div>
 
   <!-- Floating Toast Notification -->
@@ -643,13 +659,51 @@
     let currentProofTimestamp = "";
     let currentProofSrc = "";
 
+    const THAI_MONTHS_SHORT = [
+      "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.",
+      "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."
+    ];
+    const THAI_DAYS = [
+      "วันอาทิตย์", "วันจันทร์", "วันอังคาร", "วันพุธ", "วันพฤหัสบดี", "วันศุกร์", "วันเสาร์"
+    ];
+
+    function formatThaiDateTime(dateStr) {
+      if (!dateStr) return "รอภาพหลักฐาน...";
+      try {
+        const parts = dateStr.trim().split(" ");
+        if (parts.length >= 2) {
+          const dParts = parts[0].split("-").map(Number);
+          const tParts = parts[1].split(":");
+          const year = dParts[0];
+          const month = dParts[1];
+          const day = dParts[2];
+          const hour = tParts[0];
+          const minute = tParts[1];
+          const second = tParts[2] ? tParts[2].split(".")[0] : "";
+          
+          const dateObj = new Date(year, month - 1, day);
+          const dayName = THAI_DAYS[dateObj.getDay()] || "";
+          const thaiYear = year > 2500 ? year : year + 543;
+          const monthName = THAI_MONTHS_SHORT[month - 1] || "";
+          
+          const timeFormatted = second ? `${hour}:${minute}:${second}` : `${hour}:${minute}`;
+          return `${dayName}ที่ ${day} ${monthName} ${thaiYear} เวลา ${timeFormatted} น.`;
+        }
+      } catch (e) {
+        console.log("Date format error:", e);
+      }
+      return dateStr;
+    }
+
     function onProofLoaded() {
       const proofImg = document.getElementById('proof-image');
       const placeholder = document.getElementById('proof-placeholder');
       const overlay = document.getElementById('proof-overlay');
+      const badgeOverlay = document.getElementById('proof-badge-overlay');
       if (proofImg) proofImg.classList.remove('hidden');
       if (placeholder) placeholder.classList.add('hidden');
       if (overlay) overlay.classList.remove('hidden');
+      if (badgeOverlay) badgeOverlay.classList.remove('hidden');
     }
 
     function openProofZoom() {
@@ -1130,7 +1184,14 @@
         }
 
         if (proofTime) {
-          document.getElementById('proof-timestamp').innerText = `อัปเดตเมื่อ: ${proofTime}`;
+          const thaiFormatted = formatThaiDateTime(proofTime);
+          const proofTimestampEl = document.getElementById('proof-timestamp');
+          const proofOverlayTimeEl = document.getElementById('proof-overlay-time');
+          const modalZoomTimeEl = document.getElementById('modal-zoom-time');
+
+          if (proofTimestampEl) proofTimestampEl.innerText = thaiFormatted;
+          if (proofOverlayTimeEl) proofOverlayTimeEl.innerText = thaiFormatted;
+          if (modalZoomTimeEl) modalZoomTimeEl.innerText = `หลักฐานบันทึกเวลา: ${thaiFormatted}`;
         }
       }
 
